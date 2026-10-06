@@ -1,22 +1,10 @@
 import { createClient } from '@supabase/supabase-js';
-import jwt from 'jsonwebtoken';
-import { encryptData, decryptData, encryptObject, decryptObject } from '../../lib/encryption';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-console.log('API Config:', {
-  supabaseUrl: supabaseUrl ? 'Set' : 'Missing',
-  supabaseAnonKey: supabaseAnonKey ? 'Set' : 'Missing'
-});
-
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('Missing Supabase configuration!');
-}
-
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-// Verify JWT token
 async function verifyAuth(req) {
   const authHeader = req.headers.authorization;
   if (!authHeader?.startsWith('Bearer ')) {
@@ -31,7 +19,6 @@ async function verifyAuth(req) {
       console.error('Auth error:', error);
       return null;
     }
-    console.log('User authenticated:', user?.id);
     return user;
   } catch (error) {
     console.error('Auth verification error:', error);
@@ -41,9 +28,7 @@ async function verifyAuth(req) {
 
 export default async function handler(req, res) {
   try {
-    console.log('=== TASK API ===');
-    console.log('Method:', req.method);
-    console.log('Path:', req.path);
+    console.log('=== TASK API ===', req.method);
 
     const user = await verifyAuth(req);
     if (!user) {
@@ -65,17 +50,10 @@ export default async function handler(req, res) {
           throw error;
         }
 
-        // Decrypt sensitive fields
-        const decryptedTasks = (data || []).map(task => ({
-          ...task,
-          prompt: task.prompt ? decryptData(task.prompt) : null,
-          success_criteria: task.success_criteria ? decryptData(task.success_criteria) : null
-        }));
-
-        console.log('Tasks fetched:', decryptedTasks?.length || 0);
-        return res.status(200).json({ tasks: decryptedTasks || [] });
+        console.log('Tasks fetched:', data?.length || 0);
+        return res.status(200).json({ tasks: data || [] });
       } catch (error) {
-        console.error('GET tasks error:', error.message);
+        console.error('GET error:', error.message);
         return res.status(500).json({ error: `Failed to fetch tasks: ${error.message}` });
       }
     }
@@ -83,28 +61,28 @@ export default async function handler(req, res) {
     if (req.method === 'POST') {
       console.log('POST create task for user:', user.id);
       try {
-        const { name, frequency } = req.body;
-        console.log('Task data:', { name, frequency });
+        const { name, description, prompt, frequency, success_criteria, input_files, output_files } = req.body;
+
+        console.log('Task data received:', { name, frequency, hasPrompt: !!prompt });
 
         if (!name) {
           return res.status(400).json({ error: 'Task name required' });
         }
 
-        console.log('Inserting task with encryption...');
-
-        // Encrypt sensitive fields
         const taskData = {
-          name,
+          name: name.trim(),
+          description: description ? description.trim() : null,
+          prompt: prompt ? prompt.trim() : null,
           frequency: frequency || 'weekly',
           user_id: user.id,
           team_id: user.id,
           status: 'active',
-          description: formData.description || null,
-          prompt: formData.prompt ? encryptData(formData.prompt) : null,
-          success_criteria: formData.success_criteria ? encryptData(formData.success_criteria) : null,
-          input_files: formData.input_files ? JSON.stringify(formData.input_files.split(',').map(f => f.trim())) : null,
-          output_files: formData.output_files ? JSON.stringify(formData.output_files.split(',').map(f => f.trim())) : null
+          success_criteria: success_criteria ? success_criteria.trim() : null,
+          input_files: input_files ? input_files.split(',').map(f => f.trim()).filter(f => f) : [],
+          output_files: output_files ? output_files.split(',').map(f => f.trim()).filter(f => f) : []
         };
+
+        console.log('Inserting task:', taskData.name);
 
         const { data, error } = await supabase
           .from('tasks')
@@ -124,6 +102,77 @@ export default async function handler(req, res) {
       } catch (error) {
         console.error('POST error:', error);
         return res.status(500).json({ error: `Failed to create task: ${error.message}` });
+      }
+    }
+
+    if (req.method === 'PUT') {
+      console.log('PUT update task for user:', user.id);
+      try {
+        const { id, name, description, prompt, frequency, success_criteria } = req.body;
+
+        if (!id) {
+          return res.status(400).json({ error: 'Task ID required' });
+        }
+
+        const updateData = {
+          name: name ? name.trim() : undefined,
+          description: description ? description.trim() : undefined,
+          prompt: prompt ? prompt.trim() : undefined,
+          frequency: frequency || undefined,
+          success_criteria: success_criteria ? success_criteria.trim() : undefined
+        };
+
+        // Remove undefined fields
+        Object.keys(updateData).forEach(key => updateData[key] === undefined && delete updateData[key]);
+
+        const { data, error } = await supabase
+          .from('tasks')
+          .update(updateData)
+          .eq('id', id)
+          .eq('user_id', user.id)
+          .select();
+
+        if (error) {
+          console.error('Update error:', error);
+          throw error;
+        }
+
+        console.log('Task updated:', id);
+        return res.status(200).json({
+          success: true,
+          task: data[0]
+        });
+      } catch (error) {
+        console.error('PUT error:', error);
+        return res.status(500).json({ error: `Failed to update task: ${error.message}` });
+      }
+    }
+
+    if (req.method === 'DELETE') {
+      console.log('DELETE task for user:', user.id);
+      try {
+        const { id } = req.body;
+
+        if (!id) {
+          return res.status(400).json({ error: 'Task ID required' });
+        }
+
+        const { error } = await supabase
+          .from('tasks')
+          .delete()
+          .eq('id', id)
+          .eq('user_id', user.id);
+
+        if (error) {
+          console.error('Delete error:', error);
+          throw error;
+        }
+
+        console.log('Task deleted:', id);
+        return res.status(200).json({ success: true });
+      } catch (error) {
+        console.error('DELETE error:', error);
+        return res.status(500).json({ error: `Failed to delete task: ${error.message}` });
       }
     }
 
