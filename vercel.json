@@ -3,20 +3,6 @@
   "devCommand": "next dev",
   "installCommand": "npm install",
   "framework": "nextjs",
-  "env": {
-    "NEXT_PUBLIC_SUPABASE_URL": "@next_public_supabase_url",
-    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "@next_public_supabase_anon_key",
-    "SUPABASE_SERVICE_KEY": "@supabase_service_key",
-    "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY": "@next_public_stripe_publishable_key",
-    "STRIPE_SECRET_KEY": "@stripe_secret_key",
-    "STRIPE_WEBHOOK_SECRET": "@stripe_webhook_secret",
-    "JWT_SECRET": "@jwt_secret",
-    "ENCRYPTION_KEY": "@encryption_key",
-    "HIGHLEVEL_API_KEY": "@highlevel_api_key",
-    "CLAUDE_API_KEY": "@claude_api_key",
-    "NEXT_PUBLIC_APP_URL": "@next_public_app_url",
-    "NEXT_PUBLIC_APP_NAME": "ZEPHYRIX"
-  },
   "regions": ["sfo1"],
   "git": {
     "deploymentEnabled": true
