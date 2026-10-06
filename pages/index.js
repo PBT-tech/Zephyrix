@@ -1,6 +1,4 @@
 import React from 'react';
-import Dashboard from '../ZEPHYRIX-REACT-DASHBOARD';
+import ZephyrexApp from '../ZEPHYRIX-REACT-DASHBOARD';
 
-export default function Home() {
-  return <Dashboard />;
-}
+export default ZephyrexApp;
