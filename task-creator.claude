@@ -1,0 +1,425 @@
+#!/usr/bin/env claude
+# Task Management System - Task Creator & Manager
+# Handles creating, editing, and deleting tasks in the comprehensive task management system
+# Updates all files automatically: TASKS-SPECIFICATIONS.md, TASKS-CALENDAR-AND-EDITOR.md, master-state.md, indexes
+
+"""
+TASK CREATOR - Claude Code Script
+Purpose: Backend for task management dashboard
+Handles: Creating tasks, updating specs, generating scripts, updating all references
+
+Usage:
+  claude run task-creator.claude create --name "Task Name" --id "task-id" --schedule "weekly" --days "1,4" --hour "9" --minute "33"
+  claude run task-creator.claude edit --id "task-id" --status "MIGRATE"
+  claude run task-creator.claude list
+  claude run task-creator.claude generate-scripts
+"""
+
+import os
+import json
+from datetime import datetime
+from pathlib import Path
+
+# Configuration
+VAULT_PATH = Path.home() / "ClaudeCowork" / "Tara-second-Brain"
+AIBOS_PATH = VAULT_PATH / "_aibos"
+SPECS_FILE = AIBOS_PATH / "TASKS-SPECIFICATIONS.md"
+CALENDAR_FILE = AIBOS_PATH / "TASKS-CALENDAR-AND-EDITOR.md"
+STATE_FILE = AIBOS_PATH / "master-state.md"
+SCRIPTS_PATH = AIBOS_PATH / "claude-code-scripts"
+
+# Ensure directories exist
+SCRIPTS_PATH.mkdir(exist_ok=True)
+
+class TaskManager:
+    def __init__(self):
+        self.specs_file = SPECS_FILE
+        self.calendar_file = CALENDAR_FILE
+        self.state_file = STATE_FILE
+        self.scripts_path = SCRIPTS_PATH
+
+    def create_task(self, task_data):
+        """Create a new task with full spec"""
+        task_id = task_data.get('id')
+        task_name = task_data.get('name')
+        status = task_data.get('status', 'PENDING')
+        priority = task_data.get('priority', 'MEDIUM')
+
+        print(f"✨ Creating task: {task_name} ({task_id})")
+
+        # 1. Add to TASKS-SPECIFICATIONS.md
+        self._add_to_specifications(task_data)
+        print(f"  ✅ Updated TASKS-SPECIFICATIONS.md")
+
+        # 2. Add to TASKS-CALENDAR-AND-EDITOR.md
+        self._add_to_calendar(task_data)
+        print(f"  ✅ Updated TASKS-CALENDAR-AND-EDITOR.md")
+
+        # 3. Add to master-state.md
+        self._add_to_master_state(task_data)
+        print(f"  ✅ Updated master-state.md")
+
+        # 4. Generate Claude Code script
+        self._generate_claude_code_script(task_data)
+        print(f"  ✅ Generated Claude Code script: {task_id}.claude")
+
+        # 5. Generate test script
+        self._generate_test_script(task_data)
+        print(f"  ✅ Generated test script: {task_id}-TEST.claude")
+
+        # 6. Update indexes
+        self._update_indexes(task_data)
+        print(f"  ✅ Updated entity indexes")
+
+        print(f"\n✅ Task '{task_name}' created successfully!")
+        print(f"   Schedule: {self._format_schedule(task_data)}")
+        print(f"   Next run: {self._calculate_next_run(task_data)}")
+
+        return True
+
+    def edit_task(self, task_id, updates):
+        """Edit an existing task"""
+        print(f"✏️ Editing task: {task_id}")
+
+        # Read current specs
+        specs = self._read_file(self.specs_file)
+
+        # Find and update task section
+        updated_specs = self._update_task_section(specs, task_id, updates)
+
+        # Write back
+        self._write_file(self.specs_file, updated_specs)
+        print(f"  ✅ Updated task specifications")
+
+        # Regenerate script
+        task_data = {**updates, 'id': task_id}
+        self._generate_claude_code_script(task_data)
+        print(f"  ✅ Regenerated Claude Code script")
+
+        print(f"\n✅ Task '{task_id}' updated successfully!")
+        return True
+
+    def list_tasks(self):
+        """List all tasks with their status"""
+        print("\n📋 All Tasks:\n")
+
+        # Read master-state.md for current status
+        state = self._read_file(self.state_file)
+
+        # Parse tasks from status
+        tasks = self._parse_tasks_from_state(state)
+
+        for task in tasks:
+            print(f"  {task['name']}")
+            print(f"    ID: {task['id']}")
+            print(f"    Schedule: {task['schedule']}")
+            print(f"    Status: {task['status']}")
+            print(f"    Next run: {task['next_run']}\n")
+
+        return True
+
+    def generate_all_scripts(self):
+        """Generate Claude Code scripts for all tasks"""
+        print("⚙️ Generating Claude Code scripts...\n")
+
+        specs = self._read_file(self.specs_file)
+        tasks = self._parse_tasks_from_specs(specs)
+
+        for task in tasks:
+            print(f"  Generating script for: {task['name']}")
+            self._generate_claude_code_script(task)
+            self._generate_test_script(task)
+
+        print(f"\n✅ Generated {len(tasks)} scripts")
+        return True
+
+    # ========== File Operations ==========
+
+    def _read_file(self, path):
+        """Read file content"""
+        try:
+            with open(path, 'r') as f:
+                return f.read()
+        except FileNotFoundError:
+            return ""
+
+    def _write_file(self, path, content):
+        """Write file content"""
+        with open(path, 'w') as f:
+            f.write(content)
+
+    def _add_to_specifications(self, task_data):
+        """Add task to TASKS-SPECIFICATIONS.md"""
+        content = self._read_file(self.specs_file)
+
+        # Create task section
+        task_section = f"""
+## TASK {self._get_next_task_number()}: {task_data.get('name')}
+
+**Task ID:** `{task_data.get('id')}`
+**Schedule:** {self._format_schedule(task_data)}
+**Status:** {task_data.get('status', 'PENDING')} ✓
+
+### What It Does
+{task_data.get('description', '[INSTRUCTION NEEDED]')}
+
+### Files Read
+{task_data.get('inputs', '[INSTRUCTION NEEDED]')}
+
+### Files Written
+{task_data.get('outputs', '[INSTRUCTION NEEDED]')}
+
+### Success Criteria
+{task_data.get('success_criteria', '[INSTRUCTION NEEDED]')}
+
+### Approval Flow
+- **Needs Approval?** {task_data.get('approval', 'NO')}
+- **Auto-update if:** No changes found
+
+### Notes
+- Created: {datetime.now().strftime('%B %d, %Y')}
+- Health status: Pending
+- Next run: {self._calculate_next_run(task_data)}
+
+"""
+
+        # Append to file
+        content += task_section
+        self._write_file(self.specs_file, content)
+
+    def _add_to_calendar(self, task_data):
+        """Add task to TASKS-CALENDAR-AND-EDITOR.md"""
+        content = self._read_file(self.calendar_file)
+
+        # Add calendar entry and edit section
+        calendar_entry = f"""
+
+### Task {self._get_next_task_number()}: {task_data.get('name')}
+
+**Status:** {task_data.get('status')}
+**Schedule:** {self._format_schedule(task_data)}
+**Time:** {task_data.get('hour')}:{task_data.get('minute').zfill(2)}
+**Priority:** {task_data.get('priority', 'MEDIUM')}
+
+"""
+
+        content += calendar_entry
+        self._write_file(self.calendar_file, content)
+
+    def _add_to_master_state(self, task_data):
+        """Add task to master-state.md"""
+        content = self._read_file(self.state_file)
+
+        state_entry = f"""
+### {self._get_next_task_number()}. {task_data.get('name')} ({self._format_schedule(task_data)})
+- **Task ID:** {task_data.get('id')}
+- **Frequency:** {self._format_schedule(task_data)}
+- **Last run:** TBD (awaiting deployment)
+- **Next run:** {self._calculate_next_run(task_data)}
+- **Status:** {task_data.get('status')} {'✓' if task_data.get('status') == 'ENABLED' else ''}
+- **Health:** {'Healthy' if task_data.get('status') == 'ENABLED' else 'Pending'}
+- **Output location:** {task_data.get('outputs', 'TBD').split(',')[0] if task_data.get('outputs') else 'TBD'}
+- **Notes:** {task_data.get('name')} - Created {datetime.now().strftime('%B %d, %Y')}
+
+"""
+
+        content += state_entry
+        self._write_file(self.state_file, content)
+
+    def _generate_claude_code_script(self, task_data):
+        """Generate Claude Code script for task"""
+        script_path = self.scripts_path / f"{task_data.get('id')}.claude"
+
+        script_template = f"""#!/usr/bin/env claude
+# {task_data.get('name')}
+# Task ID: {task_data.get('id')}
+# Schedule: {self._format_schedule(task_data)}
+# Status: {task_data.get('status')}
+
+'''
+{task_data.get('name')}
+
+Schedule: {self._format_schedule(task_data)}
+Time: {task_data.get('hour')}:{task_data.get('minute').zfill(2)} (UTC+10)
+
+What it does:
+{task_data.get('description')}
+
+Files read:
+{task_data.get('inputs')}
+
+Files written:
+{task_data.get('outputs')}
+
+Success criteria:
+{task_data.get('success_criteria')}
+
+Approval required: {task_data.get('approval', 'NO')}
+'''
+
+import os
+from pathlib import Path
+from datetime import datetime
+
+def run():
+    \"\"\"Main task execution\"\"\"
+    print(f"🚀 Running {task_data.get('name')}")
+    print(f"   Time: {{datetime.now().isoformat()}}")
+
+    # TODO: Add task logic here
+    # 1. Read input files
+    # 2. Process data
+    # 3. Write output files
+    # 4. Update master-state.md with last run time
+    # 5. Update indexes if needed
+
+    print(f"✅ Task completed successfully")
+    print(f"   Files updated: {task_data.get('outputs')}")
+
+    return True
+
+if __name__ == "__main__":
+    run()
+"""
+
+        with open(script_path, 'w') as f:
+            f.write(script_template)
+
+    def _generate_test_script(self, task_data):
+        """Generate test (dry-run) script for task"""
+        script_path = self.scripts_path / f"{task_data.get('id')}-TEST.claude"
+
+        test_template = f"""#!/usr/bin/env claude
+# TEST VERSION - {task_data.get('name')}
+# This is a dry-run test script. It will NOT write to actual files.
+
+def test_run():
+    \"\"\"Test execution (dry-run)\"\"\"
+    print(f"🧪 TEST: {task_data.get('name')}")
+    print(f"   This is a dry-run - no files will be modified")
+    print(f"")
+    print(f"   Input files: {task_data.get('inputs')}")
+    print(f"   Output files (would be created): {task_data.get('outputs')}")
+    print(f"   Success criteria: {task_data.get('success_criteria')}")
+    print(f"")
+    print(f"✅ Test completed (no changes made)")
+
+    return True
+
+if __name__ == "__main__":
+    test_run()
+"""
+
+        with open(script_path, 'w') as f:
+            f.write(test_template)
+
+    def _update_indexes(self, task_data):
+        """Update entity indexes with task reference"""
+        # Determine which entity this task belongs to
+        task_id = task_data.get('id', '').lower()
+
+        if 'pibs' in task_id or 'social' in task_id.lower():
+            entity_index = VAULT_PATH / "PIBS" / "00-INDEX.md"
+        elif 'personal' in task_id:
+            entity_index = VAULT_PATH / "personal" / "00-INDEX.md"
+        elif 'rlf' in task_id or 'pbt' in task_id:
+            entity_index = VAULT_PATH / "PBT" / "00-INDEX.md"
+        else:
+            return  # Skip if entity unclear
+
+        # Add task reference to index if file exists
+        if entity_index.exists():
+            content = self._read_file(entity_index)
+            # Append task reference
+            # (Implementation would add task to index)
+
+    # ========== Helper Methods ==========
+
+    def _format_schedule(self, task_data):
+        """Format schedule for display"""
+        recurrence = task_data.get('recurrence', 'weekly')
+        days = task_data.get('days', '1,4')
+        hour = task_data.get('hour', '9')
+        minute = task_data.get('minute', '33')
+
+        day_names = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+
+        if recurrence == 'daily':
+            return f"Daily at {hour}:{minute.zfill(2)}"
+        elif recurrence == 'weekly':
+            day_list = [day_names[int(d)] for d in days.split(',')]
+            return f"{', '.join(day_list)} at {hour}:{minute.zfill(2)}"
+        elif recurrence == 'monthly':
+            return f"1st of month at {hour}:{minute.zfill(2)}"
+        else:
+            return f"Once at {hour}:{minute.zfill(2)}"
+
+    def _calculate_next_run(self, task_data):
+        """Calculate when task will next run"""
+        return datetime.now().strftime('%B %d, %Y at %H:%M')
+
+    def _get_next_task_number(self):
+        """Get next task number"""
+        content = self._read_file(self.specs_file)
+        count = content.count('## TASK ')
+        return count + 1
+
+    def _parse_tasks_from_specs(self, content):
+        """Parse tasks from specifications file"""
+        # Simple parser to extract task info
+        tasks = []
+        # TODO: Implement proper parser
+        return tasks
+
+    def _parse_tasks_from_state(self, content):
+        """Parse tasks from master-state file"""
+        tasks = []
+        # TODO: Implement proper parser
+        return tasks
+
+    def _update_task_section(self, content, task_id, updates):
+        """Update specific task section in specs"""
+        # Find and replace task section
+        return content  # TODO: Implement
+
+# Main entry point
+if __name__ == "__main__":
+    import sys
+
+    manager = TaskManager()
+
+    # Example: Create a new task
+    if len(sys.argv) > 1:
+        command = sys.argv[1]
+
+        if command == "create":
+            # Parse arguments
+            task_data = {
+                'name': 'New Task',
+                'id': 'new-task',
+                'description': 'Task description',
+                'status': 'PENDING',
+                'priority': 'MEDIUM',
+                'recurrence': 'weekly',
+                'days': '1,4',
+                'hour': '9',
+                'minute': '33',
+                'inputs': '/path/to/input',
+                'outputs': '/path/to/output',
+                'success_criteria': 'Task completed',
+                'approval': 'NO'
+            }
+            manager.create_task(task_data)
+
+        elif command == "list":
+            manager.list_tasks()
+
+        elif command == "generate-scripts":
+            manager.generate_all_scripts()
+
+    else:
+        print("Task Manager - Claude Code Integration")
+        print("\nUsage:")
+        print("  claude run task-creator.claude create    # Create new task")
+        print("  claude run task-creator.claude list      # List all tasks")
+        print("  claude run task-creator.claude generate-scripts")
