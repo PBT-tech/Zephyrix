@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import jwt from 'jsonwebtoken';
+import { encryptData, decryptData, encryptObject, decryptObject } from '../../lib/encryption';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -64,8 +65,15 @@ export default async function handler(req, res) {
           throw error;
         }
 
-        console.log('Tasks fetched:', data?.length || 0);
-        return res.status(200).json({ tasks: data || [] });
+        // Decrypt sensitive fields
+        const decryptedTasks = (data || []).map(task => ({
+          ...task,
+          prompt: task.prompt ? decryptData(task.prompt) : null,
+          success_criteria: task.success_criteria ? decryptData(task.success_criteria) : null
+        }));
+
+        console.log('Tasks fetched:', decryptedTasks?.length || 0);
+        return res.status(200).json({ tasks: decryptedTasks || [] });
       } catch (error) {
         console.error('GET tasks error:', error.message);
         return res.status(500).json({ error: `Failed to fetch tasks: ${error.message}` });
@@ -82,16 +90,25 @@ export default async function handler(req, res) {
           return res.status(400).json({ error: 'Task name required' });
         }
 
-        console.log('Inserting task...');
+        console.log('Inserting task with encryption...');
+
+        // Encrypt sensitive fields
+        const taskData = {
+          name,
+          frequency: frequency || 'weekly',
+          user_id: user.id,
+          team_id: user.id,
+          status: 'active',
+          description: formData.description || null,
+          prompt: formData.prompt ? encryptData(formData.prompt) : null,
+          success_criteria: formData.success_criteria ? encryptData(formData.success_criteria) : null,
+          input_files: formData.input_files ? JSON.stringify(formData.input_files.split(',').map(f => f.trim())) : null,
+          output_files: formData.output_files ? JSON.stringify(formData.output_files.split(',').map(f => f.trim())) : null
+        };
+
         const { data, error } = await supabase
           .from('tasks')
-          .insert([{
-            name,
-            frequency: frequency || 'weekly',
-            user_id: user.id,
-            team_id: user.id,
-            status: 'active'
-          }])
+          .insert([taskData])
           .select();
 
         if (error) {
