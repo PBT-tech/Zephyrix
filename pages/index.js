@@ -1,73 +1,120 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { createClient } from '@supabase/supabase-js';
+
+// Initialize Supabase client
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+);
 
 export default function ZephyrexApp() {
   const [user, setUser] = useState(null);
   const [page, setPage] = useState('login');
-  const [loading, setLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem('authToken');
-    const savedUser = localStorage.getItem('user');
-    if (token && savedUser) {
-      setUser(JSON.parse(savedUser));
-      setPage('dashboard');
-    }
+    // Check if user is already logged in via Supabase session
+    const checkSession = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          setUser(session.user);
+          setPage('dashboard');
+        }
+      } catch (error) {
+        console.error('Session check error:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkSession();
+
+    // Subscribe to auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session?.user) {
+        setUser(session.user);
+        setPage('dashboard');
+      } else {
+        setUser(null);
+        setPage('login');
+      }
+    });
+
+    return () => subscription?.unsubscribe();
   }, []);
 
-  const handleLogout = () => {
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('user');
-    setUser(null);
-    setPage('login');
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+      setUser(null);
+      setPage('login');
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   };
 
+  if (isLoading) {
+    return <div style={{ padding: '20px', textAlign: 'center' }}>Loading...</div>;
+  }
+
   if (!user) {
-    return <LoginPage setUser={setUser} setPage={setPage} setLoading={setLoading} />;
+    return <LoginPage setUser={setUser} />;
   }
 
   return (
-    <div style={{ fontFamily: 'sans-serif' }}>
+    <div style={{ fontFamily: 'sans-serif', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       <Header user={user} onLogout={handleLogout} setPage={setPage} />
       <Navigation currentPage={page} setPage={setPage} />
-      <main style={{ padding: '20px' }}>
+      <main style={{ padding: '20px', flex: 1 }}>
         {page === 'dashboard' && <Dashboard user={user} />}
         {page === 'create-task' && <CreateTaskForm user={user} setPage={setPage} />}
         {page === 'calendar' && <CalendarView user={user} />}
         {page === 'reporting' && <Reporting user={user} />}
         {page === 'settings' && <Settings user={user} />}
-        {user.is_system_owner && page === 'admin' && <AdminPanel user={user} />}
+        {user.user_metadata?.is_system_owner && page === 'admin' && <AdminPanel user={user} />}
       </main>
     </div>
   );
 }
 
-function LoginPage({ setUser, setPage, setLoading }) {
+function LoginPage({ setUser }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSignup, setIsSignup] = useState(false);
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
+    setIsLoading(true);
     setError('');
 
     try {
-      const response = await axios.post('/api/auth', {
-        action: isSignup ? 'signup' : 'login',
-        email,
-        password
-      });
-
-      localStorage.setItem('authToken', response.data.token);
-      localStorage.setItem('user', JSON.stringify(response.data.user));
-      setUser(response.data.user);
-      setPage('dashboard');
+      if (isSignup) {
+        const { error: signupError } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: {
+              is_system_owner: false
+            }
+          }
+        });
+        if (signupError) throw signupError;
+        setError('Check your email to confirm signup!');
+      } else {
+        const { error: loginError } = await supabase.auth.signInWithPassword({
+          email,
+          password
+        });
+        if (loginError) throw loginError;
+      }
     } catch (err) {
-      setError(err.response?.data?.error || 'Authentication failed');
+      setError(err.message || 'Authentication failed');
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
@@ -85,7 +132,7 @@ function LoginPage({ setUser, setPage, setLoading }) {
             onChange={(e) => setEmail(e.target.value)}
             required
             placeholder="your@email.com"
-            style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
+            style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd', boxSizing: 'border-box' }}
           />
         </div>
 
@@ -97,14 +144,18 @@ function LoginPage({ setUser, setPage, setLoading }) {
             onChange={(e) => setPassword(e.target.value)}
             required
             placeholder="••••••••"
-            style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
+            style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd', boxSizing: 'border-box' }}
           />
         </div>
 
-        {error && <div style={{ color: 'red', marginBottom: '15px' }}>{error}</div>}
+        {error && <div style={{ color: error.includes('Check your email') ? 'green' : 'red', marginBottom: '15px' }}>{error}</div>}
 
-        <button type="submit" disabled={loading} style={{ width: '100%', padding: '10px', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
-          {loading ? 'Loading...' : (isSignup ? 'Create Account' : 'Sign In')}
+        <button
+          type="submit"
+          disabled={isLoading}
+          style={{ width: '100%', padding: '10px', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '4px', cursor: isLoading ? 'not-allowed' : 'pointer', opacity: isLoading ? 0.6 : 1 }}
+        >
+          {isLoading ? 'Loading...' : (isSignup ? 'Create Account' : 'Sign In')}
         </button>
       </form>
 
@@ -155,7 +206,7 @@ function Navigation({ currentPage, setPage }) {
 
 function Dashboard({ user }) {
   const [tasks, setTasks] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     loadTasks();
@@ -163,19 +214,21 @@ function Dashboard({ user }) {
 
   const loadTasks = async () => {
     try {
-      const token = localStorage.getItem('authToken');
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
       const response = await axios.get('/api/tasks', {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${session.access_token}` }
       });
       setTasks(response.data.tasks || []);
     } catch (error) {
       console.error('Failed to load tasks:', error);
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
-  if (loading) return <div>Loading tasks...</div>;
+  if (isLoading) return <div>Loading tasks...</div>;
 
   return (
     <div>
@@ -199,23 +252,25 @@ function Dashboard({ user }) {
 
 function CreateTaskForm({ user, setPage }) {
   const [formData, setFormData] = useState({ name: '', frequency: 'weekly' });
-  const [loading, setLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
+    setIsLoading(true);
 
     try {
-      const token = localStorage.getItem('authToken');
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Not authenticated');
+
       await axios.post('/api/tasks', formData, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${session.access_token}` }
       });
       alert('Task created successfully!');
       setPage('dashboard');
     } catch (error) {
-      alert('Failed to create task');
+      alert('Failed to create task: ' + error.message);
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
@@ -230,7 +285,7 @@ function CreateTaskForm({ user, setPage }) {
             value={formData.name}
             onChange={(e) => setFormData({...formData, name: e.target.value})}
             required
-            style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
+            style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd', boxSizing: 'border-box' }}
           />
         </div>
 
@@ -239,7 +294,7 @@ function CreateTaskForm({ user, setPage }) {
           <select
             value={formData.frequency}
             onChange={(e) => setFormData({...formData, frequency: e.target.value})}
-            style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
+            style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd', boxSizing: 'border-box' }}
           >
             <option value="daily">Daily</option>
             <option value="weekly">Weekly</option>
@@ -247,8 +302,8 @@ function CreateTaskForm({ user, setPage }) {
           </select>
         </div>
 
-        <button type="submit" disabled={loading} style={{ padding: '10px 20px', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
-          {loading ? 'Creating...' : 'Create Task'}
+        <button type="submit" disabled={isLoading} style={{ padding: '10px 20px', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '4px', cursor: isLoading ? 'not-allowed' : 'pointer', opacity: isLoading ? 0.6 : 1 }}>
+          {isLoading ? 'Creating...' : 'Create Task'}
         </button>
       </form>
     </div>
@@ -270,3 +325,10 @@ function Settings({ user }) {
 function AdminPanel({ user }) {
   return <div><h2>⚙️ Admin Panel</h2><p>Admin controls coming soon...</p></div>;
 }
+
+// Server-side rendering not needed - Supabase handles sessions
+export const getServerSideProps = async () => {
+  return {
+    props: {}
+  };
+};
