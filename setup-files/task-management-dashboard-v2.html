@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Management System - Production Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+            font-weight: 700;
+        }
+
+        .header-subtitle {
+            color: #666;
+            font-size: 1.1em;
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        .badge {
+            background: #10b981;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 600;
+        }
+
+        .help-button {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            font-size: 28px;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            transition: all 0.3s ease;
+        }
+
+        .help-button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 30px rgba(102, 126, 234, 0.6);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            overflow-y: auto;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            max-width: 700px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            position: relative;
+            margin: 20px;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: #999;
+        }
+
+        .modal-close:hover {
+            color: #333;
+        }
+
+        .modal h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 2em;
+        }
+
+        .modal-section {
+            margin-bottom: 25px;
+        }
+
+        .modal-section h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+
+        .modal-section p {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+
+        .modal-section code {
+            background: #f5f5f5;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            color: #d63384;
+        }
+
+        .step-number {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 30px;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+
+        .card h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 0.95em;
+        }
+
+        .hint {
+            color: #999;
+            font-size: 0.85em;
+            margin-bottom: 8px;
+            font-style: italic;
+            display: block;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        input::placeholder,
+        textarea::placeholder {
+            color: #ccc;
+        }
+
+        input:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .schedule-builder {
+            border: 2px solid #f0f0f0;
+            padding: 20px;
+            border-radius: 8px;
+            background: #fafafa;
+            margin: 15px 0;
+        }
+
+        .day-picker {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .day-button {
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            color: #666;
+        }
+
+        .day-button:hover {
+            border-color: #667eea;
+        }
+
+        .day-button.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .time-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        button {
+            background: #667eea;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+        }
+
+        button:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .message {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .message.show {
+            display: block;
+        }
+
+        .success-message {
+            background: #d1fae5;
+            color: #065f46;
+            border-left: 4px solid #10b981;
+        }
+
+        .error-message {
+            background: #fee2e2;
+            color: #991b1b;
+            border-left: 4px solid #ef4444;
+        }
+
+        .task-list {
+            list-style: none;
+        }
+
+        .task-item {
+            background: #f9fafb;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            border-left: 4px solid #667eea;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .task-item-info h3 {
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .task-item-info p {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .task-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .task-buttons button {
+            width: auto;
+            padding: 8px 16px;
+            font-size: 0.9em;
+        }
+
+        .edit-btn {
+            background: #3b82f6;
+        }
+
+        .edit-btn:hover {
+            background: #2563eb;
+        }
+
+        .delete-btn {
+            background: #ef4444;
+        }
+
+        .delete-btn:hover {
+            background: #dc2626;
+        }
+
+        .tips {
+            background: #fffbeb;
+            border: 2px solid #fcd34d;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .tips h4 {
+            color: #92400e;
+            margin-bottom: 10px;
+        }
+
+        .tips p {
+            color: #78350f;
+            font-size: 0.9em;
+            line-height: 1.5;
+            margin-bottom: 8px;
+        }
+
+        .tips p:last-child {
+            margin-bottom: 0;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+
+            h1 {
+                font-size: 1.8em;
+            }
+
+            .header-subtitle {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>⚙️ Task Management System</h1>
+            <div class="header-subtitle">
+                <span>Production-grade task automation</span>
+                <span class="badge">✓ Ready to deploy</span>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <!-- Create New Task -->
+            <div class="card">
+                <h2>➕ Create New Task</h2>
+
+                <div class="message success-message" id="successMsg"></div>
+                <div class="message error-message" id="errorMsg"></div>
+
+                <form id="taskForm">
+                    <!-- BASIC INFO -->
+                    <div class="form-group">
+                        <label>Task Name *</label>
+                        <span class="hint">Human-readable name. Example: "Vault Weekly Update"</span>
+                        <input type="text" name="taskName" placeholder="e.g., Vault Weekly Update" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Task ID *</label>
+                        <span class="hint">Unique ID (lowercase, hyphens). Example: claude-vault-weekly-update</span>
+                        <input type="text" name="taskId" placeholder="e.g., claude-vault-weekly-update" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Status *</label>
+                        <span class="hint">MIGRATE = moving from Cowork, PENDING = ready, ENABLED = running</span>
+                        <select name="status" required>
+                            <option value="">Select status...</option>
+                            <option value="MIGRATE">MIGRATE - Moving from Cowork</option>
+                            <option value="PENDING">PENDING - Ready but not active</option>
+                            <option value="ENABLED">ENABLED - Active and running</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Priority *</label>
+                        <span class="hint">HIGH = urgent, MEDIUM = standard, LOW = nice to have</span>
+                        <select name="priority" required>
+                            <option value="">Select priority...</option>
+                            <option value="HIGH">HIGH - Urgent/critical</option>
+                            <option value="MEDIUM">MEDIUM - Standard</option>
+                            <option value="LOW">LOW - Nice to have</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Description *</label>
+                        <span class="hint">What does this task do? Example: "Reads /PIBS/raw/, processes, updates /PIBS/wiki/hot.md"</span>
+                        <textarea name="description" placeholder="Describe the task workflow..." required></textarea>
+                    </div>
+
+                    <!-- SCHEDULE -->
+                    <div class="schedule-builder">
+                        <label><strong>📅 Schedule Builder</strong></label>
+
+                        <div class="form-group">
+                            <label>Recurrence *</label>
+                            <span class="hint">How often does this run?</span>
+                            <select name="recurrence" id="recurrence" required>
+                                <option value="">Select recurrence...</option>
+                                <option value="daily">Daily - Every day at the time</option>
+                                <option value="weekly">Weekly - Specific days of week</option>
+                                <option value="monthly">Monthly - 1st of month</option>
+                                <option value="once">Once - Single execution</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group" id="dayPickerGroup" style="display: none;">
+                            <label>Days of Week *</label>
+                            <span class="hint">Click the days this task should run</span>
+                            <div class="day-picker" id="dayPicker">
+                                <button type="button" class="day-button" data-day="0">Sun</button>
+                                <button type="button" class="day-button" data-day="1">Mon</button>
+                                <button type="button" class="day-button" data-day="2">Tue</button>
+                                <button type="button" class="day-button" data-day="3">Wed</button>
+                                <button type="button" class="day-button" data-day="4">Thu</button>
+                                <button type="button" class="day-button" data-day="5">Fri</button>
+                                <button type="button" class="day-button" data-day="6">Sat</button>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Time *</label>
+                            <span class="hint">When should it run? Example: 9:33 AM = Hour 9, Minute 33</span>
+                            <div class="time-inputs">
+                                <input type="number" name="hour" min="0" max="23" placeholder="Hour (0-23)" required>
+                                <input type="number" name="minute" min="0" max="59" placeholder="Minute (0-59)" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- FILES -->
+                    <div class="form-group">
+                        <label>Input Files</label>
+                        <span class="hint">Files this task reads (one per line). Example: /PIBS/raw/</span>
+                        <textarea name="inputs" placeholder="/path/to/input&#10;/path/to/another&#10;(one per line)"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Output Files</label>
+                        <span class="hint">Files this task creates/updates (one per line). Example: /PIBS/wiki/hot.md</span>
+                        <textarea name="outputs" placeholder="/path/to/output&#10;/path/to/another&#10;(one per line)"></textarea>
+                    </div>
+
+                    <!-- SUCCESS -->
+                    <div class="form-group">
+                        <label>Success Criteria *</label>
+                        <span class="hint">How do you know it worked? Example: "Wiki updated, master-state.md shows new run time"</span>
+                        <textarea name="successCriteria" placeholder="What indicates success?" required></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Needs Approval?</label>
+                        <span class="hint">Should someone review before running?</span>
+                        <select name="approval">
+                            <option value="NO">NO - Run automatically</option>
+                            <option value="YES">YES - Requires approval</option>
+                        </select>
+                    </div>
+
+                    <button type="submit">💾 Save Task & Generate Script</button>
+                </form>
+            </div>
+
+            <!-- View Tasks -->
+            <div class="card">
+                <h2>📋 Your Tasks</h2>
+
+                <div class="tips">
+                    <h4>🚀 Quick Start (5 steps):</h4>
+                    <p><strong>1.</strong> Fill the form on the left</p>
+                    <p><strong>2.</strong> Click "Save Task & Generate Script"</p>
+                    <p><strong>3.</strong> Run: <code>claude run task-automation.claude</code></p>
+                    <p><strong>4.</strong> Everything auto-generates!</p>
+                    <p><strong>5.</strong> Tasks ready to run ✅</p>
+                </div>
+
+                <ul class="task-list" id="taskList">
+                    <li style="text-align: center; color: #999; padding: 20px;">
+                        📭 No tasks yet. Create one to get started!
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Help Modal -->
+    <div class="modal" id="helpModal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeHelp()">✕</button>
+            <h2>Quick Start Guide</h2>
+
+            <div class="modal-section">
+                <h3><span class="step-number">1</span>Fill the Form</h3>
+                <p>Enter task details. Every field has a hint showing what to enter with examples.</p>
+                <p><strong>Example:</strong> Create "Vault Weekly Update" running Monday & Thursday at 9:33 AM</p>
+            </div>
+
+            <div class="modal-section">
+                <h3><span class="step-number">2</span>Save Your Task</h3>
+                <p>Click "Save Task & Generate Script"</p>
+                <p>You'll see a success message and task appears in the list.</p>
+            </div>
+
+            <div class="modal-section">
+                <h3><span class="step-number">3</span>Run Automation</h3>
+                <p>Open Terminal and run:</p>
+                <p style="background: #f5f5f5; padding: 10px; border-radius: 4px; font-family: monospace; margin: 10px 0;">
+                    cd ~/ClaudeCowork/Tara-second-Brain/_aibos<br>
+                    claude run task-automation.claude
+                </p>
+                <p>This auto-generates:</p>
+                <ul style="margin-left: 20px; margin-top: 10px;">
+                    <li>Task specifications</li>
+                    <li>Calendar entries</li>
+                    <li>Claude Code scripts</li>
+                    <li>Status tracking</li>
+                    <li>Index updates</li>
+                </ul>
+            </div>
+
+            <div class="modal-section">
+                <h3><span class="step-number">4</span>Test & Deploy</h3>
+                <p>Run the test version (dry-run):</p>
+                <p style="background: #f5f5f5; padding: 10px; border-radius: 4px; font-family: monospace; margin: 10px 0;">
+                    claude run /_aibos/claude-code-scripts/YOUR-TASK-ID-TEST.claude
+                </p>
+                <p>Verify output then task is ready!</p>
+            </div>
+
+            <div class="modal-section" style="border-top: 2px solid #f0f0f0; padding-top: 20px; margin-top: 20px;">
+                <h3>📁 What Gets Created</h3>
+                <p><strong>TASKS-SPECIFICATIONS.md</strong> - Full task specs</p>
+                <p><strong>TASKS-CALENDAR-AND-EDITOR.md</strong> - Calendar & reference</p>
+                <p><strong>master-state.md</strong> - Status tracking</p>
+                <p><strong>claude-code-scripts/</strong> - All generated scripts</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Help Button -->
+    <button class="help-button" onclick="openHelp()" title="Open Quick Start Guide">?</button>
+
+    <script>
+        const recurrenceSelect = document.getElementById('recurrence');
+        const dayPickerGroup = document.getElementById('dayPickerGroup');
+        const dayPicker = document.getElementById('dayPicker');
+        const taskForm = document.getElementById('taskForm');
+        const taskList = document.getElementById('taskList');
+        const successMsg = document.getElementById('successMsg');
+        const errorMsg = document.getElementById('errorMsg');
+
+        let selectedDays = new Set();
+        let tasks = [];
+
+        // Day picker toggle
+        recurrenceSelect.addEventListener('change', (e) => {
+            dayPickerGroup.style.display = e.target.value === 'weekly' ? 'block' : 'none';
+        });
+
+        // Day button click handling
+        document.querySelectorAll('.day-button').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const day = btn.dataset.day;
+                if (selectedDays.has(day)) {
+                    selectedDays.delete(day);
+                    btn.classList.remove('active');
+                } else {
+                    selectedDays.add(day);
+                    btn.classList.add('active');
+                }
+            });
+        });
+
+        // Form submission
+        taskForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            // Gather form data
+            const taskName = document.querySelector('input[name="taskName"]').value.trim();
+            const taskId = document.querySelector('input[name="taskId"]').value.trim();
+            const status = document.querySelector('select[name="status"]').value;
+            const priority = document.querySelector('select[name="priority"]').value;
+            const description = document.querySelector('textarea[name="description"]').value.trim();
+            const successCriteria = document.querySelector('textarea[name="successCriteria"]').value.trim();
+            const recurrence = document.querySelector('select[name="recurrence"]').value;
+            const hour = document.querySelector('input[name="hour"]').value;
+            const minute = document.querySelector('input[name="minute"]').value;
+
+            // Validate
+            if (!taskName || !taskId || !status || !priority || !description || !successCriteria) {
+                showError('Please fill all required fields (marked with *)');
+                return;
+            }
+
+            if (recurrence === 'weekly' && selectedDays.size === 0) {
+                showError('Please select at least one day for weekly tasks');
+                return;
+            }
+
+            if (!hour || !minute) {
+                showError('Please set a time (hour and minute)');
+                return;
+            }
+
+            // Create task
+            const task = {
+                id: taskId,
+                name: taskName,
+                status: status,
+                priority: priority,
+                description: description,
+                inputs: document.querySelector('textarea[name="inputs"]').value.trim().split('\n').filter(l => l),
+                outputs: document.querySelector('textarea[name="outputs"]').value.trim().split('\n').filter(l => l),
+                successCriteria: successCriteria,
+                approval: document.querySelector('select[name="approval"]').value,
+                recurrence: recurrence,
+                days: recurrence === 'weekly' ? Array.from(selectedDays).sort() : [],
+                hour: parseInt(hour),
+                minute: parseInt(minute)
+            };
+
+            tasks.push(task);
+            saveTasks(tasks);
+
+            // Reset form
+            taskForm.reset();
+            selectedDays.clear();
+            dayPickerGroup.style.display = 'none';
+            document.querySelectorAll('.day-button').forEach(btn => btn.classList.remove('active'));
+
+            renderTasks();
+            showSuccess(`✅ Task "${taskName}" saved!<br><br>Next: Run <code>claude run task-automation.claude</code>`);
+        });
+
+        function saveTasks(tasksData) {
+            try {
+                localStorage.setItem('tasks', JSON.stringify(tasksData));
+
+                // Log JSON for Claude Code to read
+                const tasksJson = {
+                    version: '1.0',
+                    created: new Date().toISOString(),
+                    tasks: tasksData
+                };
+
+                console.log('📋 Task queue saved. Copy to tasks.json:');
+                console.log(JSON.stringify(tasksJson, null, 2));
+            } catch (err) {
+                showError('Error saving: ' + err.message);
+            }
+        }
+
+        function renderTasks() {
+            if (tasks.length === 0) {
+                taskList.innerHTML = `
+                    <li style="text-align: center; color: #999; padding: 20px;">
+                        📭 No tasks yet. Create one to get started!
+                    </li>
+                `;
+                return;
+            }
+
+            taskList.innerHTML = tasks.map((task, idx) => `
+                <li class="task-item">
+                    <div class="task-item-info">
+                        <h3>${task.name}</h3>
+                        <p>
+                            <strong>${task.recurrence.toUpperCase()}</strong> at
+                            ${String(task.hour).padStart(2, '0')}:${String(task.minute).padStart(2, '0')} |
+                            <strong>${task.status}</strong>
+                        </p>
+                    </div>
+                    <div class="task-buttons">
+                        <button class="edit-btn" onclick="editTask(${idx})">Edit</button>
+                        <button class="delete-btn" onclick="deleteTask(${idx})">Delete</button>
+                    </div>
+                </li>
+            `).join('');
+        }
+
+        function editTask(idx) {
+            const task = tasks[idx];
+            document.querySelector('input[name="taskName"]').value = task.name;
+            document.querySelector('input[name="taskId"]').value = task.id;
+            document.querySelector('select[name="status"]').value = task.status;
+            document.querySelector('select[name="priority"]').value = task.priority;
+            document.querySelector('textarea[name="description"]').value = task.description;
+            document.querySelector('input[name="hour"]').value = task.hour;
+            document.querySelector('input[name="minute"]').value = task.minute;
+            document.querySelector('select[name="recurrence"]').value = task.recurrence;
+            document.querySelector('textarea[name="inputs"]').value = task.inputs.join('\n');
+            document.querySelector('textarea[name="outputs"]').value = task.outputs.join('\n');
+            document.querySelector('textarea[name="successCriteria"]').value = task.successCriteria;
+            document.querySelector('select[name="approval"]').value = task.approval;
+
+            selectedDays.clear();
+            task.days.forEach(day => {
+                selectedDays.add(day);
+                document.querySelector(`[data-day="${day}"]`).classList.add('active');
+            });
+
+            if (task.recurrence === 'weekly') {
+                dayPickerGroup.style.display = 'block';
+            }
+
+            tasks.splice(idx, 1);
+            renderTasks();
+            document.querySelector('input[name="taskName"]').focus();
+            showSuccess('Task loaded for editing.');
+        }
+
+        function deleteTask(idx) {
+            if (confirm('Delete this task?')) {
+                tasks.splice(idx, 1);
+                renderTasks();
+                saveTasks(tasks);
+                showSuccess('Task deleted');
+            }
+        }
+
+        function showSuccess(msg) {
+            successMsg.innerHTML = msg;
+            successMsg.classList.add('show');
+            errorMsg.classList.remove('show');
+            setTimeout(() => successMsg.classList.remove('show'), 5000);
+        }
+
+        function showError(msg) {
+            errorMsg.innerHTML = msg;
+            errorMsg.classList.add('show');
+            successMsg.classList.remove('show');
+            setTimeout(() => errorMsg.classList.remove('show'), 5000);
+        }
+
+        function openHelp() {
+            document.getElementById('helpModal').classList.add('active');
+        }
+
+        function closeHelp() {
+            document.getElementById('helpModal').classList.remove('active');
+        }
+
+        // Load on page load
+        window.addEventListener('load', () => {
+            const saved = localStorage.getItem('tasks');
+            if (saved) {
+                try {
+                    tasks = JSON.parse(saved);
+                    renderTasks();
+                } catch (e) {
+                    console.error('Error loading tasks:', e);
+                }
+            }
+        });
+
+        // Close modal when clicking outside
+        document.getElementById('helpModal').addEventListener('click', (e) => {
+            if (e.target.id === 'helpModal') {
+                closeHelp();
+            }
+        });
+    </script>
+</body>
+</html>

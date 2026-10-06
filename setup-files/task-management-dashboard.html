@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Management System - Dashboard (Commercial Edition)</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .deadline-banner {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin-top: 15px;
+            border-radius: 4px;
+            color: #856404;
+            font-weight: 500;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 1200px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+
+        .card h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 20px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .task-list {
+            list-style: none;
+        }
+
+        .task-item {
+            background: #f8f9fa;
+            padding: 15px;
+            margin-bottom: 12px;
+            border-left: 4px solid #667eea;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .task-item:hover {
+            background: #e9ecef;
+            transform: translateX(5px);
+        }
+
+        .task-info {
+            flex: 1;
+        }
+
+        .task-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 4px;
+        }
+
+        .task-schedule {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-right: 10px;
+        }
+
+        .status-migrate {
+            background: #ffe5e5;
+            color: #c41e3a;
+        }
+
+        .status-enabled {
+            background: #e5f5e5;
+            color: #28a745;
+        }
+
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #e9ecef;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #dee2e6;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            max-width: 700px;
+            max-height: 90vh;
+            overflow-y: auto;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            margin: auto;
+        }
+
+        .modal-header {
+            margin-bottom: 30px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 15px;
+        }
+
+        .modal-header h3 {
+            color: #333;
+            font-size: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        input[type="text"],
+        input[type="time"],
+        input[type="number"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        input[type="text"]:focus,
+        input[type="time"]:focus,
+        input[type="number"]:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .schedule-builder {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+
+        .schedule-builder h4 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+
+        .recurrence-options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .recurrence-btn {
+            padding: 10px;
+            border: 2px solid #dee2e6;
+            border-radius: 6px;
+            background: white;
+            color: #333;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            transition: all 0.2s ease;
+        }
+
+        .recurrence-btn:hover {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+
+        .recurrence-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .day-picker {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+
+        .day-checkbox {
+            position: relative;
+        }
+
+        .day-checkbox input {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .day-checkbox label {
+            display: block;
+            padding: 10px 5px;
+            text-align: center;
+            border: 2px solid #dee2e6;
+            border-radius: 6px;
+            background: white;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            margin: 0;
+        }
+
+        .day-checkbox input:checked + label {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .time-input-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .schedule-preview {
+            background: white;
+            border: 1px solid #dee2e6;
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 15px;
+        }
+
+        .preview-line {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 5px;
+            line-height: 1.6;
+        }
+
+        .preview-line strong {
+            color: #333;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-box {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 28px;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .migration-progress {
+            margin-top: 20px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            width: 29%;
+            transition: width 0.3s ease;
+        }
+
+        .help-text {
+            background: #e7f3ff;
+            border-left: 3px solid #2196F3;
+            padding: 12px;
+            margin-top: 10px;
+            border-radius: 4px;
+            font-size: 13px;
+            color: #1976D2;
+        }
+
+        .close-modal {
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            color: #aaa;
+            cursor: pointer;
+            line-height: 20px;
+        }
+
+        .close-modal:hover {
+            color: #000;
+        }
+
+        .success-message {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🤖 Task Management Dashboard</h1>
+            <p class="subtitle">Manage all 7 Claude Code scheduled tasks. Create with calendar + time picker, edit, view schedules, and auto-generate scripts.</p>
+            <div class="deadline-banner">
+                ⏰ <strong>Claude Code Migration Deadline: October 6, 2026 (3 days remaining)</strong> — All Cowork tasks must be migrated by then.
+            </div>
+        </header>
+
+        <div class="main-grid">
+            <!-- Left Column: Task Overview -->
+            <div class="card">
+                <h2>📋 Current Tasks (7 Total)</h2>
+
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <div class="stat-number">2</div>
+                        <div class="stat-label">MIGRATE</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-number">3</div>
+                        <div class="stat-label">ENABLED</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-number">2</div>
+                        <div class="stat-label">PENDING</div>
+                    </div>
+                </div>
+
+                <ul class="task-list" id="taskList">
+                    <!-- Populated by JavaScript -->
+                </ul>
+
+                <div class="button-group">
+                    <button class="btn-primary" onclick="openCreateTaskModal()">+ Create New Task</button>
+                    <button class="btn-secondary" onclick="viewCalendar()">📅 View Calendar</button>
+                </div>
+
+                <div class="migration-progress">
+                    <strong>Migration Progress</strong>
+                    <div class="progress-bar">
+                        <div class="progress-fill"></div>
+                    </div>
+                    <p style="font-size: 12px; color: #666; margin-top: 8px;">2 of 7 tasks migrated to Claude Code</p>
+                </div>
+            </div>
+
+            <!-- Right Column: Quick Actions -->
+            <div class="card">
+                <h2>⚡ Quick Actions</h2>
+
+                <div style="margin-bottom: 20px;">
+                    <h3 style="font-size: 16px; color: #333; margin-bottom: 12px;">Next Steps (Oct 3-6)</h3>
+                    <div style="background: #f8f9fa; padding: 15px; border-radius: 6px; line-height: 1.8;">
+                        <p>✅ <strong>Done:</strong> Vault restructure, frontmatter standardization</p>
+                        <p>🔴 <strong>Urgent:</strong> Finish task specifications (3 days)</p>
+                        <p>🔴 <strong>Urgent:</strong> Generate Claude Code scripts</p>
+                        <p>🟡 <strong>Test:</strong> Run each task before deadline</p>
+                    </div>
+                </div>
+
+                <button class="btn-primary" style="width: 100%; margin-bottom: 10px;" onclick="viewSpecifications()">
+                    📝 View Task Specifications
+                </button>
+                <button class="btn-secondary" style="width: 100%; margin-bottom: 10px;" onclick="generateScripts()">
+                    ⚙️ Generate Claude Code Scripts
+                </button>
+                <button class="btn-secondary" style="width: 100%; margin-bottom: 10px;" onclick="viewMigrationGuide()">
+                    📖 Migration Guide
+                </button>
+                <button class="btn-success" style="width: 100%;" onclick="exportTaskList()">
+                    💾 Export Task List
+                </button>
+
+                <div class="help-text" style="margin-top: 20px;">
+                    <strong>💡 Tip:</strong> Create tasks using the calendar + time picker, then the system auto-generates Claude Code scripts and updates all references.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create/Edit Task Modal -->
+    <div class="modal" id="taskModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="close-modal" onclick="closeTaskModal()">&times;</span>
+                <h3 id="modalTitle">Create New Task</h3>
+            </div>
+
+            <form id="taskForm">
+                <div class="form-group">
+                    <label for="taskName">Task Name *</label>
+                    <input type="text" id="taskName" placeholder="e.g., Vault Weekly Update" required>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="taskId">Task ID *</label>
+                        <input type="text" id="taskId" placeholder="e.g., claude-vault-weekly-update" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="taskStatus">Status *</label>
+                        <select id="taskStatus" required>
+                            <option value="">Select status...</option>
+                            <option value="MIGRATE">MIGRATE (urgent - Oct 6)</option>
+                            <option value="PENDING">PENDING (plan Oct 6+)</option>
+                            <option value="ENABLED">ENABLED (working)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>📅 Schedule Builder *</label>
+                    <div class="schedule-builder">
+                        <h4>1. Choose Recurrence Pattern</h4>
+                        <div class="recurrence-options">
+                            <button type="button" class="recurrence-btn" onclick="selectRecurrence('once')">📅 Once</button>
+                            <button type="button" class="recurrence-btn" onclick="selectRecurrence('daily')">📅 Daily</button>
+                            <button type="button" class="recurrence-btn active" onclick="selectRecurrence('weekly')">📅 Weekly</button>
+                            <button type="button" class="recurrence-btn" onclick="selectRecurrence('monthly')">📅 Monthly</button>
+                        </div>
+                        <input type="hidden" id="recurrenceType" value="weekly">
+
+                        <h4 style="margin-top: 15px;">2. Select Day(s)</h4>
+                        <div class="day-picker" id="dayPicker">
+                            <div class="day-checkbox">
+                                <input type="checkbox" id="day0" value="0">
+                                <label for="day0">Sun</label>
+                            </div>
+                            <div class="day-checkbox">
+                                <input type="checkbox" id="day1" value="1" checked>
+                                <label for="day1">Mon</label>
+                            </div>
+                            <div class="day-checkbox">
+                                <input type="checkbox" id="day2" value="2">
+                                <label for="day2">Tue</label>
+                            </div>
+                            <div class="day-checkbox">
+                                <input type="checkbox" id="day3" value="3">
+                                <label for="day3">Wed</label>
+                            </div>
+                            <div class="day-checkbox">
+                                <input type="checkbox" id="day4" value="4" checked>
+                                <label for="day4">Thu</label>
+                            </div>
+                            <div class="day-checkbox">
+                                <input type="checkbox" id="day5" value="5">
+                                <label for="day5">Fri</label>
+                            </div>
+                            <div class="day-checkbox">
+                                <input type="checkbox" id="day6" value="6">
+                                <label for="day6">Sat</label>
+                            </div>
+                        </div>
+
+                        <h4 style="margin-top: 15px;">3. Select Time</h4>
+                        <div class="time-input-group">
+                            <div>
+                                <label for="scheduleHour">Hour (0-23) *</label>
+                                <input type="number" id="scheduleHour" min="0" max="23" value="9" required>
+                            </div>
+                            <div>
+                                <label for="scheduleMinute">Minute (0-59) *</label>
+                                <input type="number" id="scheduleMinute" min="0" max="59" value="33" required>
+                            </div>
+                        </div>
+
+                        <div class="schedule-preview">
+                            <h4 style="margin-bottom: 10px; color: #333;">📋 Schedule Preview</h4>
+                            <div class="preview-line"><strong>Recurrence:</strong> <span id="previewRecurrence">Weekly</span></div>
+                            <div class="preview-line"><strong>Days:</strong> <span id="previewDays">Monday, Thursday</span></div>
+                            <div class="preview-line"><strong>Time:</strong> <span id="previewTime">09:33 (UTC+10)</span></div>
+                            <div class="preview-line"><strong>Next Run:</strong> <span id="previewNext">This Thursday at 9:33 AM</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="taskDescription">What It Does *</label>
+                    <textarea id="taskDescription" placeholder="Describe the task workflow..." required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="taskInputs">Files Read (comma-separated paths)</label>
+                    <textarea id="taskInputs" placeholder="/PIBS/raw/, /personal/raw/"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="taskOutputs">Files Written (comma-separated paths)</label>
+                    <textarea id="taskOutputs" placeholder="/PIBS/wiki/hot.md, /_aibos/master-state.md"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="taskSuccess">Success Criteria</label>
+                    <textarea id="taskSuccess" placeholder="How do you know this task succeeded?"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="taskApproval">Approval Required?</label>
+                    <select id="taskApproval">
+                        <option value="NO">NO</option>
+                        <option value="YES">YES (needs review)</option>
+                    </select>
+                </div>
+
+                <div class="button-group">
+                    <button type="button" class="btn-secondary" onclick="closeTaskModal()">Cancel</button>
+                    <button type="submit" class="btn-primary">Save Task & Generate Script</button>
+                </div>
+
+                <div class="help-text" style="margin-top: 20px;">
+                    <strong>✨ Auto-Generated:</strong> Clicking "Save" will generate a Claude Code script, update TASKS-SPECIFICATIONS.md, TASKS-CALENDAR-AND-EDITOR.md, and master-state.md.
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Sample tasks data
+        const tasks = [
+            {
+                id: 'claude-vault-weekly-update',
+                name: 'Vault Weekly Update',
+                schedule: 'Thursday 9:33 AM',
+                status: 'MIGRATE',
+                priority: 'HIGH'
+            },
+            {
+                id: 'li-rlf-signal-scan',
+                name: 'LinkedIn RLF Signal Scan',
+                schedule: 'Weekdays 8:32 AM',
+                status: 'PENDING',
+                priority: 'HIGH'
+            },
+            {
+                id: 'monthly-algorithm-refresh',
+                name: 'Algorithm Refresh',
+                schedule: '1st of month 9:00 AM',
+                status: 'ENABLED',
+                priority: 'HIGH'
+            },
+            {
+                id: 'forum-au-rollout-watch',
+                name: 'Forum AU Watch',
+                schedule: 'Monday 8:03 AM',
+                status: 'PENDING',
+                priority: 'LOW'
+            },
+            {
+                id: 'monthly-memory-audit',
+                name: 'Memory Audit',
+                schedule: '1st Saturday 9:00 AM',
+                status: 'ENABLED',
+                priority: 'MEDIUM'
+            },
+            {
+                id: 'annual-quarterly-review',
+                name: 'Quarterly Review',
+                schedule: 'June 30 annually',
+                status: 'ENABLED',
+                priority: 'MEDIUM'
+            },
+            {
+                id: 'personal-generate-weekly-ideas',
+                name: 'Personal Ideas Generation',
+                schedule: 'Saturday 8:02 AM',
+                status: 'PENDING',
+                priority: 'MEDIUM'
+            }
+        ];
+
+        const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+        function getStatusBadgeClass(status) {
+            if (status === 'MIGRATE') return 'status-migrate';
+            if (status === 'ENABLED') return 'status-enabled';
+            return 'status-pending';
+        }
+
+        function renderTaskList() {
+            const list = document.getElementById('taskList');
+            list.innerHTML = tasks.map(task => `
+                <li class="task-item" onclick="editTask('${task.id}')">
+                    <div class="task-info">
+                        <div class="task-name">${task.name}</div>
+                        <div class="task-schedule">${task.schedule}</div>
+                    </div>
+                    <div>
+                        <span class="status-badge ${getStatusBadgeClass(task.status)}">${task.status}</span>
+                        <button class="btn-secondary" style="padding: 6px 12px; font-size: 12px;" onclick="editTask('${task.id}'); event.stopPropagation();">Edit</button>
+                    </div>
+                </li>
+            `).join('');
+        }
+
+        function selectRecurrence(type) {
+            document.getElementById('recurrenceType').value = type;
+
+            // Update button states
+            document.querySelectorAll('.recurrence-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            // Reset day picker based on type
+            const dayCheckboxes = document.querySelectorAll('.day-checkbox input');
+            dayCheckboxes.forEach((cb, idx) => cb.checked = false);
+
+            if (type === 'daily') {
+                dayCheckboxes.forEach(cb => cb.checked = true);
+                document.getElementById('previewRecurrence').textContent = 'Daily';
+                document.getElementById('previewDays').textContent = 'Every day';
+            } else if (type === 'weekly') {
+                document.getElementById('day1').checked = true; // Monday
+                document.getElementById('day4').checked = true; // Thursday
+                document.getElementById('previewRecurrence').textContent = 'Weekly';
+            } else if (type === 'monthly') {
+                document.getElementById('day1').checked = true; // 1st of month
+                document.getElementById('previewRecurrence').textContent = 'Monthly';
+                document.getElementById('previewDays').textContent = '1st of month';
+            } else if (type === 'once') {
+                document.getElementById('previewRecurrence').textContent = 'Once';
+                document.getElementById('previewDays').textContent = 'One-time';
+            }
+
+            updateSchedulePreview();
+        }
+
+        function updateSchedulePreview() {
+            const type = document.getElementById('recurrenceType').value;
+            const hour = document.getElementById('scheduleHour').value.padStart(2, '0');
+            const minute = document.getElementById('scheduleMinute').value.padStart(2, '0');
+            const checkedDays = Array.from(document.querySelectorAll('.day-checkbox input:checked'))
+                .map(cb => dayNames[cb.value])
+                .join(', ');
+
+            document.getElementById('previewTime').textContent = `${hour}:${minute} (UTC+10)`;
+            if (type === 'weekly' && checkedDays) {
+                document.getElementById('previewDays').textContent = checkedDays;
+            }
+        }
+
+        // Event listeners for schedule preview updates
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('scheduleHour').addEventListener('change', updateSchedulePreview);
+            document.getElementById('scheduleMinute').addEventListener('change', updateSchedulePreview);
+            document.querySelectorAll('.day-checkbox input').forEach(cb => {
+                cb.addEventListener('change', updateSchedulePreview);
+            });
+        });
+
+        function openCreateTaskModal() {
+            document.getElementById('modalTitle').textContent = 'Create New Task';
+            document.getElementById('taskForm').reset();
+            document.getElementById('taskId').disabled = false;
+            document.getElementById('scheduleHour').value = '9';
+            document.getElementById('scheduleMinute').value = '33';
+            selectRecurrence('weekly');
+            document.getElementById('taskModal').classList.add('active');
+        }
+
+        function closeTaskModal() {
+            document.getElementById('taskModal').classList.remove('active');
+        }
+
+        function editTask(taskId) {
+            const task = tasks.find(t => t.id === taskId);
+            if (task) {
+                document.getElementById('modalTitle').textContent = `Edit Task: ${task.name}`;
+                document.getElementById('taskName').value = task.name;
+                document.getElementById('taskId').value = task.id;
+                document.getElementById('taskId').disabled = true;
+                document.getElementById('taskModal').classList.add('active');
+            }
+        }
+
+        function viewCalendar() {
+            alert('📅 Calendar View\n\nTask Calendar - October 2026\n\nMon 4: 2 tasks (RLF Scan, Forum Watch)\nThu 7: 2 tasks (Vault Update, RLF Scan)\nFri 8: 1 task (RLF Scan)\n\nUse the schedule builder to customize when tasks run.');
+        }
+
+        function viewSpecifications() {
+            alert('Opening: /_aibos/TASKS-SPECIFICATIONS.md\n\nFill in the [INSTRUCTION NEEDED] sections for each task.');
+        }
+
+        function generateScripts() {
+            alert('✨ Claude Code Script Generator\n\nThis will:\n1. Create a Claude Code script for each task\n2. Auto-update all references (indexes, master-state.md)\n3. Set up scheduling\n4. Create test harnesses\n\nReady? Check /_aibos/claude-code-scripts/');
+        }
+
+        function viewMigrationGuide() {
+            alert('📖 Migration Guide\n\nYour task management system:\n✅ task-management-dashboard.html - This UI\n✅ TASKS-SPECIFICATIONS.md - Full task specs\n✅ TASKS-CALENDAR-AND-EDITOR.md - Calendar & edit interface\n✅ master-state.md - Task status tracking\n\nStart: Fill specs → Generate scripts → Test → Deploy');
+        }
+
+        function exportTaskList() {
+            const csv = 'Task Name,Task ID,Schedule,Status,Priority\n' +
+                       tasks.map(t => `"${t.name}","${t.id}","${t.schedule}","${t.status}","${t.priority}"`).join('\n');
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'tasks-export.csv';
+            a.click();
+        }
+
+        document.getElementById('taskForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            // Gather task data
+            const taskData = {
+                id: document.getElementById('taskId').value,
+                name: document.getElementById('taskName').value,
+                status: document.getElementById('taskStatus').value,
+                priority: document.getElementById('taskPriority').value,
+                recurrence: document.getElementById('recurrenceType').value,
+                days: Array.from(document.querySelectorAll('.day-checkbox input:checked')).map(cb => cb.value),
+                hour: parseInt(document.getElementById('scheduleHour').value),
+                minute: parseInt(document.getElementById('scheduleMinute').value),
+                description: document.getElementById('taskDescription').value,
+                inputs: document.getElementById('taskInputs').value.split(',').map(s => s.trim()).filter(s => s),
+                outputs: document.getElementById('taskOutputs').value.split(',').map(s => s.trim()).filter(s => s),
+                success_criteria: document.getElementById('taskSuccess').value,
+                approval: document.getElementById('taskApproval').value,
+                approval_method: 'Manual review'
+            };
+
+            // Save to tasks.json
+            saveTasks(taskData);
+
+            alert('✅ Task saved to queue!\n\n' +
+                  'Next step:\n' +
+                  '1. Run: claude run task-automation.claude\n\n' +
+                  'This will auto-generate:\n' +
+                  '✓ Task specifications\n' +
+                  '✓ Calendar entries\n' +
+                  '✓ Claude Code scripts (production + test)\n' +
+                  '✓ Updated indexes\n' +
+                  '✓ Status tracking\n\n' +
+                  'Then task is ready to run on schedule!');
+
+            closeTaskModal();
+            renderTaskList();
+        });
+
+        function saveTasks(taskData) {
+            // Get existing tasks or create new list
+            let allTasks = loadTasks();
+
+            // Check if task exists (update) or add new
+            const existingIndex = allTasks.findIndex(t => t.id === taskData.id);
+            if (existingIndex >= 0) {
+                allTasks[existingIndex] = taskData;
+            } else {
+                allTasks.push(taskData);
+            }
+
+            // Save to localStorage (dashboard-only, for display)
+            localStorage.setItem('dashboardTasks', JSON.stringify(allTasks));
+
+            // Also save as JSON text that Claude Code can read
+            console.log('Task queued for automation:');
+            console.log(JSON.stringify({ tasks: allTasks }, null, 2));
+        }
+
+        function loadTasks() {
+            try {
+                return JSON.parse(localStorage.getItem('dashboardTasks') || '[]');
+            } catch {
+                return [];
+            }
+        }
+
+        // Initialize
+        renderTaskList();
+    </script>
+</body>
+</html>
