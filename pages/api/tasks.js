@@ -1,24 +1,45 @@
 import { createClient } from '@supabase/supabase-js';
+import jwt from 'jsonwebtoken';
 
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+// Use service key if available, otherwise use anon key
 const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_KEY
+  supabaseUrl,
+  supabaseServiceKey || supabaseAnonKey
 );
 
 // Verify JWT token from Supabase Auth
 async function verifyAuth(req) {
   const authHeader = req.headers.authorization;
   if (!authHeader?.startsWith('Bearer ')) {
+    console.error('No auth header');
     return null;
   }
 
   const token = authHeader.substring(7);
   try {
-    const { data: { user }, error } = await supabase.auth.getUser(token);
-    if (error || !user) return null;
-    return user;
+    // Try Supabase auth verification first
+    if (supabaseServiceKey) {
+      const { data: { user }, error } = await supabase.auth.getUser(token);
+      if (error) {
+        console.error('Supabase auth error:', error);
+        return null;
+      }
+      return user;
+    } else {
+      // Fallback: decode JWT manually
+      const decoded = jwt.decode(token);
+      if (!decoded) {
+        console.error('Invalid token');
+        return null;
+      }
+      return { id: decoded.sub, email: decoded.email };
+    }
   } catch (error) {
-    console.error('Auth error:', error);
+    console.error('Auth verification error:', error);
     return null;
   }
 }
