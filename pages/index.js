@@ -405,13 +405,15 @@ function EditTaskModal({ task, onClose, onSave }) {
           </div>
 
           <div style={{ marginBottom: '15px' }}>
-            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Input Files/Paths</label>
-            <input type="text" value={formData.input_files || ''} onChange={(e) => setFormData({...formData, input_files: e.target.value})} placeholder="/path/to/input" style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd', boxSizing: 'border-box' }} />
+            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Input Files/Paths (comma-separated)</label>
+            <input type="text" value={formData.input_files || ''} onChange={(e) => setFormData({...formData, input_files: e.target.value})} placeholder="/path/to/file1, /path/to/file2, /data/input.csv" style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd', boxSizing: 'border-box' }} />
+            <small style={{ color: '#666', marginTop: '5px', display: 'block' }}>Example: /home/data/input.txt, /data/config.json</small>
           </div>
 
           <div style={{ marginBottom: '15px' }}>
-            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Output Files/Paths</label>
-            <input type="text" value={formData.output_files || ''} onChange={(e) => setFormData({...formData, output_files: e.target.value})} placeholder="/path/to/output" style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd', boxSizing: 'border-box' }} />
+            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Output Files/Paths (comma-separated)</label>
+            <input type="text" value={formData.output_files || ''} onChange={(e) => setFormData({...formData, output_files: e.target.value})} placeholder="/path/to/output1, /path/to/output2" style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd', boxSizing: 'border-box' }} />
+            <small style={{ color: '#666', marginTop: '5px', display: 'block' }}>Example: /home/results/report.txt, /data/output.json</small>
           </div>
 
           <div style={{ marginBottom: '15px' }}>
@@ -562,13 +564,15 @@ function CreateTaskForm({ user, setPage }) {
         </div>
 
         <div style={{ marginBottom: '15px' }}>
-          <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Input Files/Paths</label>
-          <input type="text" value={formData.input_files} onChange={(e) => setFormData({...formData, input_files: e.target.value})} placeholder="/path/to/input" style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd', boxSizing: 'border-box' }} />
+          <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Input Files/Paths (comma-separated)</label>
+          <input type="text" value={formData.input_files} onChange={(e) => setFormData({...formData, input_files: e.target.value})} placeholder="/path/to/file1, /path/to/file2, /data/input.csv" style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd', boxSizing: 'border-box' }} />
+          <small style={{ color: '#666', marginTop: '5px', display: 'block' }}>Example: /home/data/input.txt, /data/config.json</small>
         </div>
 
         <div style={{ marginBottom: '15px' }}>
-          <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Output Files/Paths</label>
-          <input type="text" value={formData.output_files} onChange={(e) => setFormData({...formData, output_files: e.target.value})} placeholder="/path/to/output" style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd', boxSizing: 'border-box' }} />
+          <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Output Files/Paths (comma-separated)</label>
+          <input type="text" value={formData.output_files} onChange={(e) => setFormData({...formData, output_files: e.target.value})} placeholder="/path/to/output1, /path/to/output2" style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd', boxSizing: 'border-box' }} />
+          <small style={{ color: '#666', marginTop: '5px', display: 'block' }}>Example: /home/results/report.txt, /data/output.json</small>
         </div>
 
         <div style={{ marginBottom: '15px' }}>

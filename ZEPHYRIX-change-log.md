@@ -5,7 +5,20 @@ date: 2026-10-07
 
 # ZEPHYRIX Change Log
 
-## Entry 9 - 2026-10-07 ⭐ LATEST
+## Entry 10 - 2026-10-07 ⭐ LATEST
+
+### UX Improvement: Input/Output Files Format Clarity
+- ✅ Added "(comma-separated)" label to Input Files/Paths field
+- ✅ Added "(comma-separated)" label to Output Files/Paths field
+- ✅ Added example text below fields showing format: "/path/file1, /path/file2"
+- ✅ Updated both Create and Edit forms with clearer instructions
+
+### Issue
+Users didn't know the format for multiple file paths (comma-separated vs other formats)
+
+---
+
+## Entry 9 - 2026-10-07
 
 ### Comprehensive Audit & Missing Fields Fix
 - ✅ Added Priority field to Create & Edit forms (low/medium/high)
