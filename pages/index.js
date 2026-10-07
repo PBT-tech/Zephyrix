@@ -240,7 +240,6 @@ function Dashboard({ user, setPage }) {
                   <h3 style={{ margin: '0 0 5px 0' }}>{task.name}</h3>
                   {task.description && <p style={{ color: '#666', margin: '5px 0', fontSize: '14px' }}>{task.description}</p>}
                   <p style={{ color: '#666', margin: '5px 0', fontSize: '13px' }}>Frequency: {task.frequency}</p>
-                  {task.prompt && <p style={{ color: '#666', margin: '5px 0', fontSize: '13px', fontStyle: 'italic' }}>Prompt: {task.prompt.substring(0, 100)}...</p>}
                 </div>
                 <div style={{ display: 'flex', gap: '10px' }}>
                   <button onClick={() => setEditingTask(task)} style={{ padding: '8px 12px', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>✏️ Edit</button>
@@ -336,7 +335,10 @@ function CreateTaskForm({ user, setPage }) {
     frequency: 'weekly',
     success_criteria: '',
     input_files: '',
-    output_files: ''
+    output_files: '',
+    scheduled_time: '09:00',
+    scheduled_date: new Date().toISOString().split('T')[0],
+    days_of_week: [1, 2, 3, 4, 5] // Monday-Friday by default
   });
   const [isLoading, setIsLoading] = useState(false);
 
@@ -397,11 +399,50 @@ function CreateTaskForm({ user, setPage }) {
         <div style={{ marginBottom: '15px' }}>
           <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Frequency</label>
           <select value={formData.frequency} onChange={(e) => setFormData({...formData, frequency: e.target.value})} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd', boxSizing: 'border-box' }}>
+            <option value="once">Run Once</option>
             <option value="daily">Daily</option>
             <option value="weekly">Weekly</option>
             <option value="monthly">Monthly</option>
           </select>
         </div>
+
+        <div style={{ marginBottom: '15px' }}>
+          <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Time (24-hour format)</label>
+          <input type="time" value={formData.scheduled_time} onChange={(e) => setFormData({...formData, scheduled_time: e.target.value})} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd', boxSizing: 'border-box' }} />
+        </div>
+
+        {formData.frequency === 'once' && (
+          <div style={{ marginBottom: '15px' }}>
+            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Date</label>
+            <input type="date" value={formData.scheduled_date} onChange={(e) => setFormData({...formData, scheduled_date: e.target.value})} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd', boxSizing: 'border-box' }} />
+          </div>
+        )}
+
+        {formData.frequency === 'weekly' && (
+          <div style={{ marginBottom: '15px' }}>
+            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Days of Week</label>
+            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+              {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => {
+                    const days = [...formData.days_of_week];
+                    if (days.includes(idx)) {
+                      days.splice(days.indexOf(idx), 1);
+                    } else {
+                      days.push(idx);
+                    }
+                    setFormData({...formData, days_of_week: days.sort()});
+                  }}
+                  style={{ padding: '8px 12px', backgroundColor: formData.days_of_week.includes(idx) ? '#007bff' : '#ddd', color: formData.days_of_week.includes(idx) ? 'white' : 'black', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+                >
+                  {day}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div style={{ display: 'flex', gap: '10px' }}>
           <button type="submit" disabled={isLoading} style={{ padding: '10px 20px', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '4px', cursor: isLoading ? 'not-allowed' : 'pointer', opacity: isLoading ? 0.6 : 1 }}>
