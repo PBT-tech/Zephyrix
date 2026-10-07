@@ -822,20 +822,22 @@ function CalendarView({ user }) {
 
       days.push(
         <div key={day} style={{
-          padding: '10px',
+          padding: '12px',
           border: '1px solid #ddd',
           backgroundColor: dayTasks.length > 0 ? '#e8f4f8' : 'white',
-          minHeight: '80px',
-          overflowY: 'auto'
+          minHeight: '150px',
+          overflowY: 'auto',
+          display: 'flex',
+          flexDirection: 'column'
         }}>
-          <strong style={{ fontSize: '14px' }}>{day}</strong>
-          <div style={{ fontSize: '11px', marginTop: '5px' }}>
-            {dayTasks.slice(0, 2).map(task => (
-              <div key={task.id} style={{ color: '#007bff', marginTop: '3px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          <strong style={{ fontSize: '16px', marginBottom: '8px' }}>{day}</strong>
+          <div style={{ fontSize: '12px', flex: 1 }}>
+            {dayTasks.map(task => (
+              <div key={task.id} style={{ color: '#007bff', marginBottom: '4px', wordBreak: 'break-word', lineHeight: '1.3' }}>
                 • {task.name}
               </div>
             ))}
-            {dayTasks.length > 2 && <div style={{ color: '#666', fontSize: '10px' }}>+{dayTasks.length - 2} more</div>}
+            {dayTasks.length === 0 && <div style={{ color: '#ccc', fontSize: '11px' }}>-</div>}
           </div>
         </div>
       );

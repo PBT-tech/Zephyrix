@@ -52,6 +52,17 @@ Select Days — Click day buttons to toggle them on/off, Set Time — Enter hour
 
 # RESOLVED ITEMS - 07 October 2026
 
+## ✅ Entry 18: Calendar View Enhancement - Larger Boxes & Show All Tasks
+**Status:** COMPLETED - 2026-10-07
+**What was done:**
+- Increased box height from 80px to 150px (nearly 2x larger)
+- Removed task limit - shows ALL tasks for each day (was showing only 2)
+- Removed "+N more" overflow indicator
+- Increased font sizes: day number 16px, task names 12px
+- Added word-break for long task names
+- Improved spacing and layout with flexbox
+- Better visual hierarchy with larger padding and margins
+
 ## ✅ Entry 17: Modal UX Enhancement - Close Button & Click-Away
 **Status:** COMPLETED - 2026-10-07
 **What was done:**

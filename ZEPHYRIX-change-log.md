@@ -5,7 +5,27 @@ date: 2026-10-07
 
 # ZEPHYRIX Change Log
 
-## Entry 17 - 2026-10-07 ⭐ LATEST
+## Entry 18 - 2026-10-07 ⭐ LATEST
+
+### Calendar View Enhancement - Larger Boxes & Show All Tasks
+- ✅ Increased minHeight from 80px to 150px (nearly 2x larger)
+- ✅ Increased padding from 10px to 12px
+- ✅ Removed task limit - now shows ALL tasks for each day (was limiting to 2)
+- ✅ Removed "+N more" text since all tasks are visible now
+- ✅ Increased font sizes: day number 14px→16px, tasks 11px→12px
+- ✅ Added word-break for long task names
+- ✅ Improved layout: flexbox with flex: 1 for scrollable content area
+- ✅ Better spacing: marginBottom 4px between tasks
+
+### Before
+- 80px boxes, showed only 2 tasks + "+N more"
+
+### After
+- 150px boxes, shows all tasks with word wrapping
+
+---
+
+## Entry 17 - 2026-10-07
 
 ### Modal UX Enhancement - Close Button & Click-Away (MEDIUM Priority ✅)
 - ✅ Added X close button to ExecutionResultModal (top right)
