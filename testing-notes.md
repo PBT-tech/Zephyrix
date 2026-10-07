@@ -5,6 +5,8 @@
 1. priority = MEDIUM. Takes a little while to load tasks (performance optimization).
 2. priority = MEDIUM. Calendar view is not working.
 3. priority = MEDIUM. Mobile-responsive design.
+4. priority = HIGH. Task execution results need approval workflow refinement.
+5. priority = MEDIUM. Execution history/logs not displayed to user.
 
 
 
