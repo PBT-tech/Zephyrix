@@ -438,7 +438,8 @@ function EditTaskModal({ task, onClose, onSave }) {
       alert('Task updated successfully!');
       onSave();
     } catch (error) {
-      alert('Failed to update task');
+      console.error('Update error:', error.response?.data || error.message);
+      alert('Failed to update task: ' + (error.response?.data?.error || error.message));
     } finally {
       setIsLoading(false);
     }
