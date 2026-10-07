@@ -28,7 +28,7 @@ export default async function handler(req, res) {
       return res.status(405).json({ error: 'Method not allowed' });
     }
 
-    const { sourceTaskId, selectedTaskIds, changes, answers } = req.body;
+    const { sourceTaskId, selectedTaskIds, changes, answers, updateDescription } = req.body;
 
     if (!sourceTaskId || !selectedTaskIds || selectedTaskIds.length === 0 || !changes) {
       return res.status(400).json({ error: 'Missing required fields' });
@@ -96,6 +96,24 @@ export default async function handler(req, res) {
     const results = await Promise.all(updatePromises);
     const successful = results.filter(r => r?.success).length;
     const failed = results.filter(r => !r?.success).length;
+
+    // Log the sync update to execution_logs for audit trail
+    if (successful > 0 && updateDescription) {
+      const executionLog = {
+        task_id: sourceTaskId,
+        user_id: user.id,
+        status: 'success',
+        execution_type: 'sync',
+        output: `SYNC UPDATE: ${updateDescription}\n\nApplied to ${successful} related task(s)\n\nAffected tasks: ${results.filter(r => r?.success).map(r => r.taskId).join(', ')}`,
+        started_at: new Date().toISOString(),
+        completed_at: new Date().toISOString()
+      };
+
+      await supabase
+        .from('execution_logs')
+        .insert([executionLog])
+        .catch(error => console.error('Error logging sync update:', error));
+    }
 
     return res.status(200).json({
       success: true,

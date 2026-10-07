@@ -1263,6 +1263,7 @@ function TaskSyncModal({ syncData, onClose, onApply }) {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedTasks, setSelectedTasks] = useState({});
   const [answers, setAnswers] = useState({});
+  const [updateDescription, setUpdateDescription] = useState('');
 
   const handleTaskToggle = (taskId) => {
     setSelectedTasks(prev => ({
@@ -1283,7 +1284,8 @@ function TaskSyncModal({ syncData, onClose, onApply }) {
     try {
       await onApply({
         selectedTasks: Object.keys(selectedTasks).filter(id => selectedTasks[id]),
-        answers: answers
+        answers: answers,
+        updateDescription: updateDescription
       });
     } finally {
       setIsLoading(false);
@@ -1296,8 +1298,29 @@ function TaskSyncModal({ syncData, onClose, onApply }) {
         <button onClick={onClose} style={{ position: 'absolute', top: '10px', right: '10px', backgroundColor: 'transparent', border: 'none', fontSize: '24px', cursor: 'pointer' }}>✕</button>
         <h2 style={{ marginTop: '0' }}>Apply Changes to Related Tasks</h2>
 
+        <div style={{ backgroundColor: '#fff3cd', padding: '15px', borderRadius: '8px', marginBottom: '20px', borderLeft: '4px solid #ffc107' }}>
+          <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold', fontSize: '14px' }}>What changes are you making?</label>
+          <textarea
+            value={updateDescription}
+            onChange={(e) => setUpdateDescription(e.target.value)}
+            placeholder="E.g., 'Updated search criteria to focus on Series A companies with $10M+ funding. Changed timeframe from last 30 days to last 60 days.'"
+            style={{
+              width: '100%',
+              padding: '10px',
+              borderRadius: '4px',
+              border: '1px solid #ddd',
+              boxSizing: 'border-box',
+              minHeight: '80px',
+              fontFamily: 'Arial, sans-serif',
+              fontSize: '13px',
+              resize: 'vertical'
+            }}
+          />
+          <p style={{ fontSize: '12px', color: '#666', margin: '8px 0 0 0' }}>This will be logged in execution history for audit trail.</p>
+        </div>
+
         <p style={{ color: '#666', marginBottom: '20px' }}>
-          Found {syncData.relatedTasks?.length || 0} related task(s). Platform-specific questions:
+          Found {syncData.relatedTasks?.length || 0} related task(s). Answer these platform-specific questions:
         </p>
 
         {syncData.questions?.map((question, idx) => (

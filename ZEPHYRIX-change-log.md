@@ -5,7 +5,36 @@ date: 2026-10-07
 
 # ZEPHYRIX Change Log
 
-## Entry 22 - 2026-10-07 ⭐ LATEST
+## Entry 23 - 2026-10-07 ⭐ LATEST
+
+### Task Sync Update Description Field + Execution Logging
+- ✅ Added update description textarea to TaskSyncModal
+- ✅ Users explain what changes they're making before syncing
+- ✅ Description logged to execution_logs as audit trail
+- ✅ Execution type: "sync" - identifies sync updates in history
+- ✅ Shows affected task count and list in logs
+- ✅ Yellow highlight field for clarity
+
+### Features
+- **Update Description Field** - Large textarea where user describes changes
+- **Execution Logging** - Auto-logs sync to execution_logs table
+- **Audit Trail** - Execution history shows what changed and why
+- **Task List** - Shows which related tasks were updated
+
+### Example Log Entry
+```
+Type: sync
+Status: success
+Output: SYNC UPDATE: Updated search criteria to focus on Series A companies with $10M+ funding. Changed timeframe from last 30 days to last 60 days.
+
+Applied to 3 related task(s)
+
+Affected tasks: task_123, task_456, task_789
+```
+
+---
+
+## Entry 22 - 2026-10-07
 
 ### Intelligent Task Sync Advisor - Smart Multi-Task Updates
 - ✅ Created `/api/sync-analysis` endpoint - finds related tasks intelligently
