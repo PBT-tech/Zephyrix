@@ -652,6 +652,7 @@ function EditTaskModal({ task, onClose, onSave }) {
     priority: task.priority || 'medium'
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [updateDescription, setUpdateDescription] = useState('');
 
   const handleBackdropClick = (e) => {
     // Only close if clicking directly on the backdrop (the fixed overlay itself)
@@ -727,6 +728,26 @@ function EditTaskModal({ task, onClose, onSave }) {
           <div style={{ marginBottom: '15px' }}>
             <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Description</label>
             <textarea value={formData.description || ''} onChange={(e) => setFormData({...formData, description: e.target.value})} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd', boxSizing: 'border-box', minHeight: '80px' }} />
+          </div>
+
+          <div style={{ marginBottom: '15px', backgroundColor: '#fff3cd', padding: '12px', borderRadius: '8px', borderLeft: '4px solid #ffc107' }}>
+            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold', fontSize: '13px' }}>What changes are you making?</label>
+            <textarea
+              value={updateDescription}
+              onChange={(e) => setUpdateDescription(e.target.value)}
+              placeholder="E.g., 'Updated search criteria to focus on Series A companies. Changed timeframe from 30 to 60 days.'"
+              style={{
+                width: '100%',
+                padding: '8px',
+                borderRadius: '4px',
+                border: '1px solid #ddd',
+                boxSizing: 'border-box',
+                minHeight: '70px',
+                fontSize: '13px',
+                fontFamily: 'Arial, sans-serif'
+              }}
+            />
+            <p style={{ fontSize: '11px', color: '#666', margin: '6px 0 0 0' }}>Describe your changes - will be logged for audit trail and help sync to related tasks.</p>
           </div>
 
           <div style={{ marginBottom: '15px' }}>
