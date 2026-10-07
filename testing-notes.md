@@ -3,10 +3,8 @@
 
 #Issues, errors and items to be addressed (in priority order) - 07 October 2026
 1. priority = HIGH. have a way for changes to be added so the task process is updated correctly. 
-2. priority = MEDIUM. Calendar view is not working.
-3. priority = MEDIUM. Mobile-responsive design.
-4. priority = MEDIUM. Execution history/logs not displayed to user.
-5. priority = MEDIUM. Modal needs X button to close in top right corner or click-away closes it.
+2. priority = MEDIUM. Mobile-responsive design.
+3. priority = MEDIUM. Execution history/logs not displayed to user.
 
 
 
@@ -53,6 +51,27 @@ Select Days — Click day buttons to toggle them on/off, Set Time — Enter hour
 ---
 
 # RESOLVED ITEMS - 07 October 2026
+
+## ✅ Entry 17: Modal UX Enhancement - Close Button & Click-Away
+**Status:** COMPLETED - 2026-10-07
+**What was done:**
+- Added X close button to top-right corner of ExecutionResultModal
+- Added X close button to top-right corner of EditTaskModal
+- Added click-away functionality: click dark overlay to close modal
+- Implemented stop-propagation to prevent modal content clicks from closing
+- Styled buttons: transparent background, 24px font, centered positioning
+
+## ✅ Entry 16: Calendar View Implementation
+**Status:** COMPLETED - 2026-10-07
+**What was done:**
+- Implemented functional monthly calendar view
+- Displays tasks on their scheduled dates based on frequency
+- Handles daily, weekly (multi-day), monthly, and one-time tasks
+- Added navigation: Previous/Next/Today buttons
+- Color-codes days with tasks (light blue background)
+- Shows task names (truncated) with overflow indicators
+- Only displays active tasks (hides paused/archived)
+- Grid layout: 7 columns for weekdays, proper formatting
 
 ## ✅ Entry 15: Bug Fix - Task Update Null Value Handling
 **Status:** COMPLETED - 2026-10-07

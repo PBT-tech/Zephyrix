@@ -5,7 +5,44 @@ date: 2026-10-07
 
 # ZEPHYRIX Change Log
 
-## Entry 15 - 2026-10-07 ⭐ LATEST
+## Entry 17 - 2026-10-07 ⭐ LATEST
+
+### Modal UX Enhancement - Close Button & Click-Away (MEDIUM Priority ✅)
+- ✅ Added X close button to ExecutionResultModal (top right)
+- ✅ Added X close button to EditTaskModal (top right)
+- ✅ Added click-away to close (click overlay/backdrop)
+- ✅ Prevents modal propagation clicks from closing
+- ✅ Improved UX: users can now close modals 3 ways (X button, click-away, or ESC via browser default)
+
+### Features
+- Prominent X button in top-right corner of modals
+- Click outside modal (on dark overlay) to close
+- Modal content click doesn't close (stops propagation)
+- Consistent styling across all modals
+
+---
+
+## Entry 16 - 2026-10-07
+
+### Calendar View Implementation (MEDIUM Priority ✅)
+- ✅ Implemented functional monthly calendar view
+- ✅ Displays tasks on scheduled dates
+- ✅ Handles all frequency types: daily, weekly (multi-day), monthly, once
+- ✅ Shows task indicators with names (truncated, +N more)
+- ✅ Navigation: Previous/Next/Today buttons
+- ✅ Color-coding: Days with tasks highlighted in blue
+- ✅ Responsive grid layout (7 columns for weekdays)
+- ✅ Loads task data and filters by active status
+
+### Features
+- Click to view full month at a glance
+- Task names truncated to fit, shows overflow count
+- Only displays active tasks (paused/archived hidden)
+- Quick navigation between months
+
+---
+
+## Entry 15 - 2026-10-07
 
 ### Bug Fix: Task Update - Null Value Handling
 - ✅ Fixed "Cannot read properties of null (reading 'trim')" error

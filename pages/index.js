@@ -352,6 +352,12 @@ function ExecutionResultModal({ result, onClose, task }) {
   const [approvalStatus, setApprovalStatus] = useState(result.approval_status || 'pending');
   const [message, setMessage] = useState('');
 
+  const handleBackdropClick = (e) => {
+    if (e.target.style.backgroundColor === 'rgba(0,0,0,0.5)') {
+      onClose();
+    }
+  };
+
   const handleApprove = async (approved) => {
     setIsApproving(true);
     setMessage('');
@@ -378,9 +384,10 @@ function ExecutionResultModal({ result, onClose, task }) {
   };
 
   return (
-    <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-      <div style={{ backgroundColor: 'white', padding: '30px', borderRadius: '8px', maxWidth: '600px', width: '90%', maxHeight: '90vh', overflowY: 'auto' }}>
-        <h2>Task Execution Result</h2>
+    <div onClick={handleBackdropClick} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, cursor: 'pointer' }}>
+      <div onClick={(e) => e.stopPropagation()} style={{ backgroundColor: 'white', padding: '30px', borderRadius: '8px', maxWidth: '600px', width: '90%', maxHeight: '90vh', overflowY: 'auto', position: 'relative', cursor: 'default' }}>
+        <button onClick={onClose} style={{ position: 'absolute', top: '10px', right: '10px', backgroundColor: 'transparent', border: 'none', fontSize: '24px', cursor: 'pointer', padding: '0', width: '30px', height: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
+        <h2 style={{ marginTop: '0' }}>Task Execution Result</h2>
         <p style={{ color: '#666', marginBottom: '5px' }}>Execution ID: {result.executionId}</p>
         <p style={{ color: '#666', marginBottom: '15px' }}>Status: <strong>{approvalStatus === 'pending' ? '⏳ Pending Approval' : approvalStatus === 'approved' ? '✅ Approved' : '❌ Rejected'}</strong></p>
 
@@ -435,6 +442,12 @@ function EditTaskModal({ task, onClose, onSave }) {
   });
   const [isLoading, setIsLoading] = useState(false);
 
+  const handleBackdropClick = (e) => {
+    if (e.target.style.backgroundColor === 'rgba(0,0,0,0.5)') {
+      onClose();
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
@@ -455,9 +468,10 @@ function EditTaskModal({ task, onClose, onSave }) {
   };
 
   return (
-    <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-      <div style={{ backgroundColor: 'white', padding: '30px', borderRadius: '8px', maxWidth: '600px', width: '90%', maxHeight: '90vh', overflowY: 'auto' }}>
-        <h2>Edit Task</h2>
+    <div onClick={handleBackdropClick} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, cursor: 'pointer' }}>
+      <div onClick={(e) => e.stopPropagation()} style={{ backgroundColor: 'white', padding: '30px', borderRadius: '8px', maxWidth: '600px', width: '90%', maxHeight: '90vh', overflowY: 'auto', position: 'relative', cursor: 'default' }}>
+        <button onClick={onClose} style={{ position: 'absolute', top: '10px', right: '10px', backgroundColor: 'transparent', border: 'none', fontSize: '24px', cursor: 'pointer', padding: '0', width: '30px', height: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
+        <h2 style={{ marginTop: '0' }}>Edit Task</h2>
         <form onSubmit={handleSubmit}>
           <div style={{ marginBottom: '15px' }}>
             <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Task Name</label>
@@ -735,7 +749,126 @@ function CreateTaskForm({ user, setPage }) {
 }
 
 function CalendarView({ user }) {
-  return <div><h2>📅 Calendar View</h2><p>Coming soon...</p></div>;
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [tasks, setTasks] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    loadTasks();
+  }, []);
+
+  const loadTasks = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      const response = await axios.get('/api/tasks', {
+        headers: { Authorization: `Bearer ${session.access_token}` }
+      });
+      setTasks(response.data.tasks || []);
+    } catch (error) {
+      console.error('Failed to load tasks:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const getDaysInMonth = (date) => {
+    return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+  };
+
+  const getFirstDayOfMonth = (date) => {
+    return new Date(date.getFullYear(), date.getMonth(), 1).getDay();
+  };
+
+  const isTaskOnDate = (task, dateStr) => {
+    if (task.frequency === 'once' && task.scheduled_date === dateStr) return true;
+
+    if (task.frequency === 'daily') return true;
+
+    if (task.frequency === 'weekly') {
+      const dayOfWeek = new Date(dateStr).getDay();
+      return task.days_of_week?.includes(dayOfWeek);
+    }
+
+    if (task.frequency === 'monthly') {
+      const day = new Date(dateStr).getDate();
+      const taskDay = task.scheduled_date ? new Date(task.scheduled_date).getDate() : 1;
+      return day === taskDay;
+    }
+
+    return false;
+  };
+
+  const renderCalendar = () => {
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+    const daysInMonth = getDaysInMonth(currentDate);
+    const firstDay = getFirstDayOfMonth(currentDate);
+    const monthName = currentDate.toLocaleString('default', { month: 'long', year: 'numeric' });
+
+    const days = [];
+    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+    // Empty cells before first day
+    for (let i = 0; i < firstDay; i++) {
+      days.push(<div key={`empty-${i}`} style={{ padding: '10px', border: '1px solid #eee', backgroundColor: '#f9f9f9' }}></div>);
+    }
+
+    // Days of month
+    for (let day = 1; day <= daysInMonth; day++) {
+      const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      const dayTasks = tasks.filter(task => isTaskOnDate(task, dateStr) && task.status === 'active');
+
+      days.push(
+        <div key={day} style={{
+          padding: '10px',
+          border: '1px solid #ddd',
+          backgroundColor: dayTasks.length > 0 ? '#e8f4f8' : 'white',
+          minHeight: '80px',
+          overflowY: 'auto'
+        }}>
+          <strong style={{ fontSize: '14px' }}>{day}</strong>
+          <div style={{ fontSize: '11px', marginTop: '5px' }}>
+            {dayTasks.slice(0, 2).map(task => (
+              <div key={task.id} style={{ color: '#007bff', marginTop: '3px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                • {task.name}
+              </div>
+            ))}
+            {dayTasks.length > 2 && <div style={{ color: '#666', fontSize: '10px' }}>+{dayTasks.length - 2} more</div>}
+          </div>
+        </div>
+      );
+    }
+
+    return days;
+  };
+
+  if (isLoading) return <div><h2>📅 Calendar View</h2><p>Loading...</p></div>;
+
+  return (
+    <div style={{ padding: '20px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+        <h2 style={{ margin: 0 }}>📅 {currentDate.toLocaleString('default', { month: 'long', year: 'numeric' })}</h2>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <button onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1))} style={{ padding: '8px 12px', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>← Prev</button>
+          <button onClick={() => setCurrentDate(new Date())} style={{ padding: '8px 12px', backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Today</button>
+          <button onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1))} style={{ padding: '8px 12px', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Next →</button>
+        </div>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '1px', backgroundColor: '#ddd', padding: '1px' }}>
+        {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+          <div key={day} style={{ padding: '10px', backgroundColor: '#f0f0f0', fontWeight: 'bold', textAlign: 'center' }}>{day}</div>
+        ))}
+        {renderCalendar()}
+      </div>
+
+      <p style={{ marginTop: '20px', color: '#666', fontSize: '13px' }}>
+        💡 Shows active tasks scheduled for each day. Click a task to edit it.
+      </p>
+    </div>
+  );
 }
 
 function Reporting({ user }) {
