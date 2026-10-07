@@ -5,7 +5,20 @@ date: 2026-10-07
 
 # ZEPHYRIX Change Log
 
-## Entry 12 - 2026-10-07 ⭐ LATEST
+## Entry 13 - 2026-10-07 ⭐ LATEST
+
+### CRITICAL BUG FIX: Task Update Failing
+- ✅ Fixed "d.split is not a function" error on task edit
+- ✅ Root cause: input_files/output_files come from DB as arrays, not strings
+- ✅ Updated PUT endpoint to handle both string (form) and array (database) formats
+- ✅ Added type checking: if Array, use as-is; if string, split by comma
+
+### Issue
+When editing existing tasks, input_files and output_files are arrays from the database. The code was trying to call `.split()` on arrays, causing the update to fail.
+
+---
+
+## Entry 12 - 2026-10-07
 
 ### Task Card UX Enhancement - Display Run Time
 - ✅ Added scheduled time display to task cards (🕐 HH:MM format)

@@ -53,6 +53,16 @@ Select Days — Click day buttons to toggle them on/off, Set Time — Enter hour
 
 # RESOLVED ITEMS - 07 October 2026
 
+## ✅ Entry 13: CRITICAL BUG FIX - Task Update Failing
+**Status:** COMPLETED - 2026-10-07
+**Root Cause:** input_files/output_files come from database as arrays, but PUT endpoint tried to call `.split()` on them
+**What was done:**
+- Fixed "d.split is not a function" error
+- Updated PUT endpoint to detect array vs string format
+- Arrays (from DB) are used as-is
+- Strings (from form) are split by comma and trimmed
+- Task edits now work correctly
+
 ## ✅ Entry 12: Task Card UX Enhancement - Display Run Time
 **Status:** COMPLETED - 2026-10-07
 **What was done:**

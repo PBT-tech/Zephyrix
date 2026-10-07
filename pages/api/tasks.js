@@ -137,10 +137,20 @@ export default async function handler(req, res) {
         if (requires_approval !== undefined) updateData.requires_approval = requires_approval;
 
         if (input_files !== undefined) {
-          updateData.input_files = input_files ? input_files.split(',').map(f => f.trim()).filter(f => f) : [];
+          // Handle both string (from form) and array (from database) formats
+          if (Array.isArray(input_files)) {
+            updateData.input_files = input_files;
+          } else {
+            updateData.input_files = input_files ? input_files.split(',').map(f => f.trim()).filter(f => f) : [];
+          }
         }
         if (output_files !== undefined) {
-          updateData.output_files = output_files ? output_files.split(',').map(f => f.trim()).filter(f => f) : [];
+          // Handle both string (from form) and array (from database) formats
+          if (Array.isArray(output_files)) {
+            updateData.output_files = output_files;
+          } else {
+            updateData.output_files = output_files ? output_files.split(',').map(f => f.trim()).filter(f => f) : [];
+          }
         }
 
         const { data, error } = await supabase
