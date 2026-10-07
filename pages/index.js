@@ -653,11 +653,45 @@ function EditTaskModal({ task, onClose, onSave }) {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [updateDescription, setUpdateDescription] = useState('');
+  const [analysisData, setAnalysisData] = useState(null);
 
   const handleBackdropClick = (e) => {
     // Only close if clicking directly on the backdrop (the fixed overlay itself)
     if (e.target.getAttribute('data-backdrop') === 'true') {
       onClose();
+    }
+  };
+
+  const handleAnalyzeChanges = async (e) => {
+    e.preventDefault();
+    if (!updateDescription.trim()) {
+      alert('Please describe what changes you are making.');
+      return;
+    }
+    setIsLoading(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const changes = {};
+      Object.keys(formData).forEach(key => {
+        if (JSON.stringify(task[key]) !== JSON.stringify(formData[key])) {
+          changes[key] = { old: task[key], new: formData[key] };
+        }
+      });
+      if (Object.keys(changes).length === 0) {
+        alert('No changes detected.');
+        setIsLoading(false);
+        return;
+      }
+      const syncResponse = await axios.post('/api/sync-analysis', {
+        taskId: task.id, taskName: task.name, changes, taskData: formData, updateDescription
+      }, { headers: { Authorization: `Bearer ${session.access_token}` } });
+      const analysisPayload = { changes, relatedTasks: syncResponse.data.relatedTasks || [], questions: syncResponse.data.questions || [], updateDescription };
+      setAnalysisData(analysisPayload);
+      onSave(analysisPayload);
+    } catch (error) {
+      alert('Analysis error: ' + (error.response?.data?.error || error.message));
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -719,7 +753,7 @@ function EditTaskModal({ task, onClose, onSave }) {
       <div onClick={(e) => e.stopPropagation()} style={{ backgroundColor: 'white', padding: '30px', borderRadius: '8px', maxWidth: '600px', width: '90%', maxHeight: '90vh', overflowY: 'auto', position: 'relative', cursor: 'default', pointerEvents: 'auto' }}>
         <button onClick={onClose} style={{ position: 'absolute', top: '10px', right: '10px', backgroundColor: 'transparent', border: 'none', fontSize: '24px', cursor: 'pointer', padding: '0', width: '30px', height: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
         <h2 style={{ marginTop: '0' }}>Edit Task</h2>
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={analysisData ? (e) => { e.preventDefault(); } : handleAnalyzeChanges}>
           <div style={{ marginBottom: '15px' }}>
             <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Task Name</label>
             <input type="text" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} required style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd', boxSizing: 'border-box' }} />
@@ -848,7 +882,7 @@ function EditTaskModal({ task, onClose, onSave }) {
           <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
             <button type="button" onClick={onClose} style={{ padding: '10px 20px', backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Cancel</button>
             <button type="submit" disabled={isLoading} style={{ padding: '10px 20px', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '4px', cursor: isLoading ? 'not-allowed' : 'pointer', opacity: isLoading ? 0.6 : 1 }}>
-              {isLoading ? 'Saving...' : 'Save Changes'}
+              {isLoading ? 'Analyzing...' : 'Analyze Changes'}
             </button>
           </div>
         </form>
