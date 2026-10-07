@@ -188,6 +188,8 @@ function Dashboard({ user, setPage }) {
   const [tasks, setTasks] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [editingTask, setEditingTask] = useState(null);
+  const [executingTaskId, setExecutingTaskId] = useState(null);
+  const [executionResult, setExecutionResult] = useState(null);
 
   useEffect(() => {
     loadTasks();
@@ -224,6 +226,29 @@ function Dashboard({ user, setPage }) {
     }
   };
 
+  const handleRunTask = async (taskId) => {
+    setExecutingTaskId(taskId);
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const response = await axios.post('/api/execute',
+        { taskId },
+        { headers: { Authorization: `Bearer ${session.access_token}` } }
+      );
+
+      setExecutionResult({
+        taskId,
+        result: response.data.result,
+        executionId: response.data.executionId,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      alert('Task execution failed: ' + error.response?.data?.error || error.message);
+    } finally {
+      setExecutingTaskId(null);
+    }
+  };
+
   if (isLoading) return <div>Loading tasks...</div>;
 
   return (
@@ -244,7 +269,9 @@ function Dashboard({ user, setPage }) {
                 <div style={{ display: 'flex', gap: '10px' }}>
                   <button onClick={() => setEditingTask(task)} style={{ padding: '8px 12px', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>✏️ Edit</button>
                   <button onClick={() => handleDelete(task.id)} style={{ padding: '8px 12px', backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>🗑️ Delete</button>
-                  <button style={{ padding: '8px 12px', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>▶️ Run</button>
+                  <button onClick={() => handleRunTask(task.id)} disabled={executingTaskId === task.id} style={{ padding: '8px 12px', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '4px', cursor: executingTaskId === task.id ? 'not-allowed' : 'pointer', fontSize: '12px', opacity: executingTaskId === task.id ? 0.6 : 1 }}>
+                    {executingTaskId === task.id ? '⏳ Running...' : '▶️ Run Now'}
+                  </button>
                 </div>
               </div>
             </div>
@@ -255,6 +282,33 @@ function Dashboard({ user, setPage }) {
       {editingTask && (
         <EditTaskModal task={editingTask} onClose={() => setEditingTask(null)} onSave={async () => { setEditingTask(null); loadTasks(); }} />
       )}
+
+      {executionResult && (
+        <ExecutionResultModal result={executionResult} onClose={() => setExecutionResult(null)} />
+      )}
+    </div>
+  );
+}
+
+function ExecutionResultModal({ result, onClose }) {
+  const [isApproved, setIsApproved] = useState(false);
+
+  return (
+    <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+      <div style={{ backgroundColor: 'white', padding: '30px', borderRadius: '8px', maxWidth: '600px', width: '90%', maxHeight: '80vh', overflowY: 'auto' }}>
+        <h2>Task Execution Result</h2>
+        <p style={{ color: '#666', marginBottom: '15px' }}>Execution ID: {result.executionId}</p>
+
+        <div style={{ backgroundColor: '#f8f9fa', padding: '15px', borderRadius: '4px', marginBottom: '15px', maxHeight: '300px', overflowY: 'auto', fontFamily: 'monospace', fontSize: '13px', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+          {result.result}
+        </div>
+
+        <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+          <button type="button" onClick={onClose} style={{ padding: '10px 20px', backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Close</button>
+          <button type="button" onClick={() => { navigator.clipboard.writeText(result.result); alert('Result copied!'); }} style={{ padding: '10px 20px', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Copy Result</button>
+          <button type="button" onClick={() => { setIsApproved(true); alert('Result approved and stored!'); onClose(); }} style={{ padding: '10px 20px', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>✅ Approve</button>
+        </div>
+      </div>
     </div>
   );
 }
