@@ -5,7 +5,20 @@ date: 2026-10-07
 
 # ZEPHYRIX Change Log
 
-## Entry 14 - 2026-10-07 ⭐ LATEST
+## Entry 15 - 2026-10-07 ⭐ LATEST
+
+### Bug Fix: Task Update - Null Value Handling
+- ✅ Fixed "Cannot read properties of null (reading 'trim')" error
+- ✅ Root cause: PUT endpoint didn't check for null values before calling .trim()
+- ✅ Updated all field checks to verify NOT null AND NOT undefined
+- ✅ Prevents calling .trim() on null values
+
+### Issue
+Form fields can be null (explicitly null from form) vs undefined (not provided). Code only checked for undefined.
+
+---
+
+## Entry 14 - 2026-10-07
 
 ### Task Card Enhancement - Show Weekly Days
 - ✅ Display specific days for weekly tasks (Mon, Tue, Wed, etc)

@@ -123,18 +123,18 @@ export default async function handler(req, res) {
 
         const updateData = {};
 
-        // Only add fields if they are explicitly provided (allow empty strings/arrays)
-        if (name !== undefined) updateData.name = name.trim();
-        if (description !== undefined) updateData.description = description.trim();
-        if (prompt !== undefined) updateData.prompt = prompt.trim();
-        if (frequency !== undefined) updateData.frequency = frequency;
-        if (success_criteria !== undefined) updateData.success_criteria = success_criteria.trim();
-        if (scheduled_time !== undefined) updateData.scheduled_time = scheduled_time;
-        if (scheduled_date !== undefined) updateData.scheduled_date = scheduled_date;
-        if (days_of_week !== undefined) updateData.days_of_week = days_of_week;
-        if (status !== undefined) updateData.status = status;
-        if (priority !== undefined) updateData.priority = priority;
-        if (requires_approval !== undefined) updateData.requires_approval = requires_approval;
+        // Only add fields if they are explicitly provided (check for both null and undefined)
+        if (name !== undefined && name !== null) updateData.name = name.trim();
+        if (description !== undefined && description !== null) updateData.description = description.trim();
+        if (prompt !== undefined && prompt !== null) updateData.prompt = prompt.trim();
+        if (frequency !== undefined && frequency !== null) updateData.frequency = frequency;
+        if (success_criteria !== undefined && success_criteria !== null) updateData.success_criteria = success_criteria.trim();
+        if (scheduled_time !== undefined && scheduled_time !== null) updateData.scheduled_time = scheduled_time;
+        if (scheduled_date !== undefined && scheduled_date !== null) updateData.scheduled_date = scheduled_date;
+        if (days_of_week !== undefined && days_of_week !== null) updateData.days_of_week = days_of_week;
+        if (status !== undefined && status !== null) updateData.status = status;
+        if (priority !== undefined && priority !== null) updateData.priority = priority;
+        if (requires_approval !== undefined && requires_approval !== null) updateData.requires_approval = requires_approval;
 
         if (input_files !== undefined) {
           // Handle both string (from form) and array (from database) formats

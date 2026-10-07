@@ -54,6 +54,15 @@ Select Days — Click day buttons to toggle them on/off, Set Time — Enter hour
 
 # RESOLVED ITEMS - 07 October 2026
 
+## ✅ Entry 15: Bug Fix - Task Update Null Value Handling
+**Status:** COMPLETED - 2026-10-07
+**Root Cause:** PUT endpoint checked for undefined but not null, then tried to call .trim() on null
+**What was done:**
+- Added null checks to all field updates in PUT endpoint
+- Changed condition from `!== undefined` to `!== undefined && !== null`
+- Prevents "Cannot read properties of null" errors
+- Task updates now handle both null and undefined safely
+
 ## ✅ Entry 14: Task Card Enhancement - Show Weekly Days
 **Status:** COMPLETED - 2026-10-07
 **What was done:**
