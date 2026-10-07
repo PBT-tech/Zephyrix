@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { createClient } from '@supabase/supabase-js';
 
-// Initialize Supabase client
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -14,7 +13,6 @@ export default function ZephyrexApp() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check if user is already logged in via Supabase session
     const checkSession = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
@@ -31,7 +29,6 @@ export default function ZephyrexApp() {
 
     checkSession();
 
-    // Subscribe to auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session?.user) {
         setUser(session.user);
@@ -68,7 +65,7 @@ export default function ZephyrexApp() {
       <Header user={user} onLogout={handleLogout} setPage={setPage} />
       <Navigation currentPage={page} setPage={setPage} />
       <main style={{ padding: '20px', flex: 1 }}>
-        {page === 'dashboard' && <Dashboard user={user} />}
+        {page === 'dashboard' && <Dashboard user={user} setPage={setPage} />}
         {page === 'create-task' && <CreateTaskForm user={user} setPage={setPage} />}
         {page === 'calendar' && <CalendarView user={user} />}
         {page === 'reporting' && <Reporting user={user} />}
@@ -96,11 +93,7 @@ function LoginPage({ setUser }) {
         const { error: signupError } = await supabase.auth.signUp({
           email,
           password,
-          options: {
-            data: {
-              is_system_owner: false
-            }
-          }
+          options: { data: { is_system_owner: false } }
         });
         if (signupError) throw signupError;
         setError('Check your email to confirm signup!');
@@ -150,11 +143,7 @@ function LoginPage({ setUser }) {
 
         {error && <div style={{ color: error.includes('Check your email') ? 'green' : 'red', marginBottom: '15px' }}>{error}</div>}
 
-        <button
-          type="submit"
-          disabled={isLoading}
-          style={{ width: '100%', padding: '10px', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '4px', cursor: isLoading ? 'not-allowed' : 'pointer', opacity: isLoading ? 0.6 : 1 }}
-        >
+        <button type="submit" disabled={isLoading} style={{ width: '100%', padding: '10px', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '4px', cursor: isLoading ? 'not-allowed' : 'pointer', opacity: isLoading ? 0.6 : 1 }}>
           {isLoading ? 'Loading...' : (isSignup ? 'Create Account' : 'Sign In')}
         </button>
       </form>
@@ -162,14 +151,7 @@ function LoginPage({ setUser }) {
       <div style={{ marginTop: '20px', textAlign: 'center' }}>
         <p>
           {isSignup ? 'Have an account?' : "Don't have an account?"}
-          <button
-            type="button"
-            onClick={() => {
-              setIsSignup(!isSignup);
-              setError('');
-            }}
-            style={{ background: 'none', border: 'none', color: '#007bff', cursor: 'pointer', marginLeft: '5px', textDecoration: 'underline' }}
-          >
+          <button type="button" onClick={() => { setIsSignup(!isSignup); setError(''); }} style={{ background: 'none', border: 'none', color: '#007bff', cursor: 'pointer', marginLeft: '5px', textDecoration: 'underline' }}>
             {isSignup ? 'Sign In' : 'Sign Up'}
           </button>
         </p>
@@ -181,9 +163,7 @@ function LoginPage({ setUser }) {
 function Header({ user, onLogout, setPage }) {
   return (
     <header style={{ backgroundColor: '#f8f9fa', padding: '15px 20px', borderBottom: '1px solid #ddd', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-      <div>
-        <h1 style={{ margin: '0', fontSize: '24px' }}>⚡ ZEPHYRIX</h1>
-      </div>
+      <h1 style={{ margin: '0', fontSize: '24px' }}>⚡ ZEPHYRIX</h1>
       <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
         <span>{user?.email}</span>
         <button onClick={() => setPage('settings')} style={{ padding: '8px 12px', backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Settings</button>
@@ -204,9 +184,10 @@ function Navigation({ currentPage, setPage }) {
   );
 }
 
-function Dashboard({ user }) {
+function Dashboard({ user, setPage }) {
   const [tasks, setTasks] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [editingTask, setEditingTask] = useState(null);
 
   useEffect(() => {
     loadTasks();
@@ -228,6 +209,21 @@ function Dashboard({ user }) {
     }
   };
 
+  const handleDelete = async (taskId) => {
+    if (!confirm('Delete this task?')) return;
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      await axios.delete('/api/tasks', {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+        data: { id: taskId }
+      });
+      setTasks(tasks.filter(t => t.id !== taskId));
+    } catch (error) {
+      alert('Failed to delete task');
+    }
+  };
+
   if (isLoading) return <div>Loading tasks...</div>;
 
   return (
@@ -239,19 +235,109 @@ function Dashboard({ user }) {
         <div style={{ display: 'grid', gap: '15px' }}>
           {tasks.map((task) => (
             <div key={task.id} style={{ padding: '15px', border: '1px solid #ddd', borderRadius: '8px', backgroundColor: '#f8f9fa' }}>
-              <h3>{task.name}</h3>
-              <p>Frequency: {task.frequency}</p>
-              <button style={{ padding: '8px 12px', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>▶️ Run Now</button>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
+                <div style={{ flex: 1 }}>
+                  <h3 style={{ margin: '0 0 5px 0' }}>{task.name}</h3>
+                  {task.description && <p style={{ color: '#666', margin: '5px 0', fontSize: '14px' }}>{task.description}</p>}
+                  <p style={{ color: '#666', margin: '5px 0', fontSize: '13px' }}>Frequency: {task.frequency}</p>
+                  {task.prompt && <p style={{ color: '#666', margin: '5px 0', fontSize: '13px', fontStyle: 'italic' }}>Prompt: {task.prompt.substring(0, 100)}...</p>}
+                </div>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <button onClick={() => setEditingTask(task)} style={{ padding: '8px 12px', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>✏️ Edit</button>
+                  <button onClick={() => handleDelete(task.id)} style={{ padding: '8px 12px', backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>🗑️ Delete</button>
+                  <button style={{ padding: '8px 12px', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>▶️ Run</button>
+                </div>
+              </div>
             </div>
           ))}
         </div>
+      )}
+
+      {editingTask && (
+        <EditTaskModal task={editingTask} onClose={() => setEditingTask(null)} onSave={async () => { setEditingTask(null); loadTasks(); }} />
       )}
     </div>
   );
 }
 
+function EditTaskModal({ task, onClose, onSave }) {
+  const [formData, setFormData] = useState(task);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      await axios.put('/api/tasks', formData, {
+        headers: { Authorization: `Bearer ${session.access_token}` }
+      });
+      alert('Task updated successfully!');
+      onSave();
+    } catch (error) {
+      alert('Failed to update task');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+      <div style={{ backgroundColor: 'white', padding: '30px', borderRadius: '8px', maxWidth: '500px', width: '90%', maxHeight: '90vh', overflowY: 'auto' }}>
+        <h2>Edit Task</h2>
+        <form onSubmit={handleSubmit}>
+          <div style={{ marginBottom: '15px' }}>
+            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Task Name</label>
+            <input type="text" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} required style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd', boxSizing: 'border-box' }} />
+          </div>
+
+          <div style={{ marginBottom: '15px' }}>
+            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Description</label>
+            <textarea value={formData.description || ''} onChange={(e) => setFormData({...formData, description: e.target.value})} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd', boxSizing: 'border-box', minHeight: '80px' }} />
+          </div>
+
+          <div style={{ marginBottom: '15px' }}>
+            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Prompt/Instructions</label>
+            <textarea value={formData.prompt || ''} onChange={(e) => setFormData({...formData, prompt: e.target.value})} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd', boxSizing: 'border-box', minHeight: '100px' }} />
+          </div>
+
+          <div style={{ marginBottom: '15px' }}>
+            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Success Criteria</label>
+            <textarea value={formData.success_criteria || ''} onChange={(e) => setFormData({...formData, success_criteria: e.target.value})} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd', boxSizing: 'border-box', minHeight: '80px' }} />
+          </div>
+
+          <div style={{ marginBottom: '15px' }}>
+            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Frequency</label>
+            <select value={formData.frequency} onChange={(e) => setFormData({...formData, frequency: e.target.value})} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd', boxSizing: 'border-box' }}>
+              <option value="daily">Daily</option>
+              <option value="weekly">Weekly</option>
+              <option value="monthly">Monthly</option>
+            </select>
+          </div>
+
+          <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+            <button type="button" onClick={onClose} style={{ padding: '10px 20px', backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Cancel</button>
+            <button type="submit" disabled={isLoading} style={{ padding: '10px 20px', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '4px', cursor: isLoading ? 'not-allowed' : 'pointer', opacity: isLoading ? 0.6 : 1 }}>
+              {isLoading ? 'Saving...' : 'Save Changes'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 function CreateTaskForm({ user, setPage }) {
-  const [formData, setFormData] = useState({ name: '', frequency: 'weekly' });
+  const [formData, setFormData] = useState({
+    name: '',
+    description: '',
+    prompt: '',
+    frequency: 'weekly',
+    success_criteria: '',
+    input_files: '',
+    output_files: ''
+  });
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e) => {
@@ -275,36 +361,54 @@ function CreateTaskForm({ user, setPage }) {
   };
 
   return (
-    <div style={{ maxWidth: '500px' }}>
+    <div style={{ maxWidth: '600px' }}>
       <h2>Create New Task</h2>
       <form onSubmit={handleSubmit}>
         <div style={{ marginBottom: '15px' }}>
-          <label style={{ display: 'block', marginBottom: '5px' }}>Task Name</label>
-          <input
-            type="text"
-            value={formData.name}
-            onChange={(e) => setFormData({...formData, name: e.target.value})}
-            required
-            style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd', boxSizing: 'border-box' }}
-          />
+          <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Task Name *</label>
+          <input type="text" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} required style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd', boxSizing: 'border-box' }} />
         </div>
 
         <div style={{ marginBottom: '15px' }}>
-          <label style={{ display: 'block', marginBottom: '5px' }}>Frequency</label>
-          <select
-            value={formData.frequency}
-            onChange={(e) => setFormData({...formData, frequency: e.target.value})}
-            style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd', boxSizing: 'border-box' }}
-          >
+          <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Description</label>
+          <textarea value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd', boxSizing: 'border-box', minHeight: '80px' }} />
+        </div>
+
+        <div style={{ marginBottom: '15px' }}>
+          <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Prompt/Instructions</label>
+          <textarea value={formData.prompt} onChange={(e) => setFormData({...formData, prompt: e.target.value})} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd', boxSizing: 'border-box', minHeight: '100px' }} placeholder="What should this task do?" />
+        </div>
+
+        <div style={{ marginBottom: '15px' }}>
+          <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Input Files/Paths</label>
+          <input type="text" value={formData.input_files} onChange={(e) => setFormData({...formData, input_files: e.target.value})} placeholder="/path/to/input" style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd', boxSizing: 'border-box' }} />
+        </div>
+
+        <div style={{ marginBottom: '15px' }}>
+          <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Output Files/Paths</label>
+          <input type="text" value={formData.output_files} onChange={(e) => setFormData({...formData, output_files: e.target.value})} placeholder="/path/to/output" style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd', boxSizing: 'border-box' }} />
+        </div>
+
+        <div style={{ marginBottom: '15px' }}>
+          <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Success Criteria</label>
+          <textarea value={formData.success_criteria} onChange={(e) => setFormData({...formData, success_criteria: e.target.value})} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd', boxSizing: 'border-box', minHeight: '80px' }} placeholder="How will you know this task succeeded?" />
+        </div>
+
+        <div style={{ marginBottom: '15px' }}>
+          <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Frequency</label>
+          <select value={formData.frequency} onChange={(e) => setFormData({...formData, frequency: e.target.value})} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd', boxSizing: 'border-box' }}>
             <option value="daily">Daily</option>
             <option value="weekly">Weekly</option>
             <option value="monthly">Monthly</option>
           </select>
         </div>
 
-        <button type="submit" disabled={isLoading} style={{ padding: '10px 20px', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '4px', cursor: isLoading ? 'not-allowed' : 'pointer', opacity: isLoading ? 0.6 : 1 }}>
-          {isLoading ? 'Creating...' : 'Create Task'}
-        </button>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <button type="submit" disabled={isLoading} style={{ padding: '10px 20px', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '4px', cursor: isLoading ? 'not-allowed' : 'pointer', opacity: isLoading ? 0.6 : 1 }}>
+            {isLoading ? 'Creating...' : 'Create Task'}
+          </button>
+          <button type="button" onClick={() => setPage('dashboard')} style={{ padding: '10px 20px', backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Cancel</button>
+        </div>
       </form>
     </div>
   );
@@ -326,9 +430,6 @@ function AdminPanel({ user }) {
   return <div><h2>⚙️ Admin Panel</h2><p>Admin controls coming soon...</p></div>;
 }
 
-// Server-side rendering not needed - Supabase handles sessions
 export const getServerSideProps = async () => {
-  return {
-    props: {}
-  };
+  return { props: {} };
 };
