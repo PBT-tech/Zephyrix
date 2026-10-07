@@ -2,11 +2,10 @@
 
 
 #Issues, errors and items to be addressed (in priority order) - 07 October 2026
-1. priority = HIGH. Task execution results need approval workflow refinement + approval button integration
-2. priority = MEDIUM. Calendar view is not working.
-3. priority = MEDIUM. Mobile-responsive design.
-4. priority = MEDIUM. Execution history/logs not displayed to user.
-5. priority = MEDIUM. Modal needs X button to close in top right corner or click-away closes it.
+1. priority = MEDIUM. Calendar view is not working.
+2. priority = MEDIUM. Mobile-responsive design.
+3. priority = MEDIUM. Execution history/logs not displayed to user.
+4. priority = MEDIUM. Modal needs X button to close in top right corner or click-away closes it.
 
 
 
@@ -53,6 +52,25 @@ Select Days — Click day buttons to toggle them on/off, Set Time — Enter hour
 ---
 
 # RESOLVED ITEMS - 07 October 2026
+
+## ✅ Entry 11: Approval Workflow Integration
+**Status:** COMPLETED - 2026-10-07
+**What was done:**
+- Created /api/approve endpoint (POST) to save approval status
+- Added approval columns to execution_logs: approval_status, approved_by, approved_at, approval_notes
+- Updated ExecutionResultModal to show approval status (pending/approved/rejected)
+- Added Approval Notes textarea for optional notes
+- Added Approve & Reject buttons (only show when task requires_approval)
+- Integrated approval API calls with loading/error states
+- Tasks with requires_approval=true now show approval workflow in execution results
+
+## ✅ Entry 10: UX Improvement - File Format Clarity
+**Status:** COMPLETED - 2026-10-07
+**What was done:**
+- Added "(comma-separated)" label to Input Files/Paths fields
+- Added "(comma-separated)" label to Output Files/Paths fields  
+- Added example text showing format: "/path/file1, /path/file2"
+- Updated both Create and Edit forms
 
 ## ✅ Entry 9: Missing Form Fields (Priority, Status, Requires Approval)
 **Status:** COMPLETED - 2026-10-07

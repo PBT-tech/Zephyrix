@@ -5,7 +5,30 @@ date: 2026-10-07
 
 # ZEPHYRIX Change Log
 
-## Entry 10 - 2026-10-07 ⭐ LATEST
+## Entry 11 - 2026-10-07 ⭐ LATEST
+
+### Approval Workflow Integration (HIGH Priority ✅)
+- ✅ Created `/api/approve` endpoint (POST) for saving approval decisions
+- ✅ Added database migration to add approval columns to execution_logs:
+  - approval_status (pending/approved/rejected)
+  - approved_by (user ID who approved)
+  - approved_at (timestamp)
+  - approval_notes (optional notes)
+- ✅ Updated ExecutionResultModal to show approval status
+- ✅ Added Approval Notes textarea for contextual notes
+- ✅ Added Approve & Reject buttons (conditional - only show for requires_approval=true)
+- ✅ Integrated API calls with loading states and error handling
+- ✅ Color-coded status display (⏳ Pending / ✅ Approved / ❌ Rejected)
+
+### Features
+- Tasks with `requires_approval=true` now enforce approval before completion
+- Users can add notes when approving/rejecting
+- Real-time approval status feedback
+- Full audit trail (who approved, when, with notes)
+
+---
+
+## Entry 10 - 2026-10-07
 
 ### UX Improvement: Input/Output Files Format Clarity
 - ✅ Added "(comma-separated)" label to Input Files/Paths field

@@ -254,11 +254,14 @@ function Dashboard({ user, setPage }) {
         { headers: { Authorization: `Bearer ${session.access_token}` } }
       );
 
+      const task = tasks.find(t => t.id === taskId);
       setExecutionResult({
         taskId,
         result: response.data.result,
         executionId: response.data.executionId,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        approval_status: 'pending',
+        task: task
       });
     } catch (error) {
       alert('Task execution failed: ' + error.response?.data?.error || error.message);
@@ -323,29 +326,81 @@ function Dashboard({ user, setPage }) {
       )}
 
       {executionResult && (
-        <ExecutionResultModal result={executionResult} onClose={() => setExecutionResult(null)} />
+        <ExecutionResultModal result={executionResult} task={executionResult.task} onClose={() => setExecutionResult(null)} />
       )}
     </div>
   );
 }
 
-function ExecutionResultModal({ result, onClose }) {
-  const [isApproved, setIsApproved] = useState(false);
+function ExecutionResultModal({ result, onClose, task }) {
+  const [approvalNotes, setApprovalNotes] = useState('');
+  const [isApproving, setIsApproving] = useState(false);
+  const [approvalStatus, setApprovalStatus] = useState(result.approval_status || 'pending');
+  const [message, setMessage] = useState('');
+
+  const handleApprove = async (approved) => {
+    setIsApproving(true);
+    setMessage('');
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const response = await axios.post('/api/approve',
+        {
+          executionId: result.executionId,
+          approved: approved,
+          approvalNotes: approvalNotes
+        },
+        { headers: { Authorization: `Bearer ${session.access_token}` } }
+      );
+
+      setApprovalStatus(approved ? 'approved' : 'rejected');
+      setMessage(response.data.message);
+      setTimeout(() => onClose(), 1500);
+    } catch (error) {
+      setMessage('Error: ' + (error.response?.data?.error || error.message));
+    } finally {
+      setIsApproving(false);
+    }
+  };
 
   return (
     <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-      <div style={{ backgroundColor: 'white', padding: '30px', borderRadius: '8px', maxWidth: '600px', width: '90%', maxHeight: '80vh', overflowY: 'auto' }}>
+      <div style={{ backgroundColor: 'white', padding: '30px', borderRadius: '8px', maxWidth: '600px', width: '90%', maxHeight: '90vh', overflowY: 'auto' }}>
         <h2>Task Execution Result</h2>
-        <p style={{ color: '#666', marginBottom: '15px' }}>Execution ID: {result.executionId}</p>
+        <p style={{ color: '#666', marginBottom: '5px' }}>Execution ID: {result.executionId}</p>
+        <p style={{ color: '#666', marginBottom: '15px' }}>Status: <strong>{approvalStatus === 'pending' ? '⏳ Pending Approval' : approvalStatus === 'approved' ? '✅ Approved' : '❌ Rejected'}</strong></p>
 
         <div style={{ backgroundColor: '#f8f9fa', padding: '15px', borderRadius: '4px', marginBottom: '15px', maxHeight: '300px', overflowY: 'auto', fontFamily: 'monospace', fontSize: '13px', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
           {result.result}
         </div>
 
+        {task?.requires_approval && approvalStatus === 'pending' && (
+          <div style={{ marginBottom: '15px' }}>
+            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Approval Notes (optional)</label>
+            <textarea value={approvalNotes} onChange={(e) => setApprovalNotes(e.target.value)} placeholder="Add any notes about this approval..." style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd', boxSizing: 'border-box', minHeight: '60px' }} />
+          </div>
+        )}
+
+        {message && (
+          <div style={{ marginBottom: '15px', padding: '10px', backgroundColor: approvalStatus === 'approved' ? '#d4edda' : '#f8d7da', color: approvalStatus === 'approved' ? '#155724' : '#721c24', borderRadius: '4px' }}>
+            {message}
+          </div>
+        )}
+
         <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
-          <button type="button" onClick={onClose} style={{ padding: '10px 20px', backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Close</button>
-          <button type="button" onClick={() => { navigator.clipboard.writeText(result.result); alert('Result copied!'); }} style={{ padding: '10px 20px', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Copy Result</button>
-          <button type="button" onClick={() => { setIsApproved(true); alert('Result approved and stored!'); onClose(); }} style={{ padding: '10px 20px', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>✅ Approve</button>
+          <button type="button" onClick={onClose} disabled={isApproving} style={{ padding: '10px 20px', backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '4px', cursor: isApproving ? 'not-allowed' : 'pointer', opacity: isApproving ? 0.6 : 1 }}>Close</button>
+          <button type="button" onClick={() => { navigator.clipboard.writeText(result.result); alert('Result copied!'); }} disabled={isApproving} style={{ padding: '10px 20px', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '4px', cursor: isApproving ? 'not-allowed' : 'pointer', opacity: isApproving ? 0.6 : 1 }}>Copy Result</button>
+
+          {task?.requires_approval && approvalStatus === 'pending' && (
+            <>
+              <button type="button" onClick={() => handleApprove(false)} disabled={isApproving} style={{ padding: '10px 20px', backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '4px', cursor: isApproving ? 'not-allowed' : 'pointer', opacity: isApproving ? 0.6 : 1 }}>
+                {isApproving ? '⏳ Processing...' : '❌ Reject'}
+              </button>
+              <button type="button" onClick={() => handleApprove(true)} disabled={isApproving} style={{ padding: '10px 20px', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '4px', cursor: isApproving ? 'not-allowed' : 'pointer', opacity: isApproving ? 0.6 : 1 }}>
+                {isApproving ? '⏳ Processing...' : '✅ Approve'}
+              </button>
+            </>
+          )}
         </div>
       </div>
     </div>
