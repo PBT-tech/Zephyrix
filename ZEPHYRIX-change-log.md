@@ -5,19 +5,24 @@ date: 2026-10-07
 
 # ZEPHYRIX Change Log
 
-## Entry 1 (Initial MVP) - 2026-10-06
-- Supabase Auth integration (signup/login)
-- Task CRUD API endpoints
-- Basic dashboard with task list
-- Simple task creation form (name + frequency only)
+## Entry 4 - 2026-10-07 ⭐ LATEST
 
----
+### UI Improvements
+- ✅ Hidden prompt snippet from Dashboard task list (kept only in edit modal)
+- ✅ Added time picker to task creation form (24-hour format HH:MM)
+- ✅ Added "Run Once" frequency option with date picker
+- ✅ Added day-of-week selector for weekly tasks (clickable day buttons)
+- ✅ Conditional field display based on frequency selection
 
-## Entry 2 - 2026-10-06
-- Fixed 404 errors on /api/tasks endpoint
-- Created proper Vercel Functions structure
-- Added JWT authentication to APIs
-- Integrated environment variables (Supabase URL, Anon Key)
+### Task Scheduling Features
+- ✅ Time scheduling for all task types
+- ✅ Single-run task support with date selection
+- ✅ Weekly task with multi-day selection
+- ✅ Daily/Monthly task with time selection
+
+### Documentation
+- ✅ Updated testing-notes.md with resolved items
+- ✅ Updated ZEPHYRIX-change-log.md with Entry 4 details
 
 ---
 
@@ -62,24 +67,22 @@ date: 2026-10-07
 ### Testing & Documentation
 - ✅ Created testing-notes.md for bug tracking
 - ✅ Marked resolved issues with root cause analysis
-- ✅ Created this changelog
 
 ---
 
-## Entry 4 - 2026-10-07
+## Entry 2 - 2026-10-06
+- ✅ Fixed 404 errors on /api/tasks endpoint
+- ✅ Created proper Vercel Functions structure
+- ✅ Added JWT authentication to APIs
+- ✅ Integrated environment variables (Supabase URL, Anon Key)
 
-### UI Improvements
-- ✅ Hidden prompt snippet from Dashboard task list (kept only in edit modal)
-- ✅ Added time picker to task creation form (24-hour format)
-- ✅ Added "Run Once" frequency option with date picker
-- ✅ Added day-of-week selector for weekly tasks (clickable day buttons)
-- ✅ Conditional field display based on frequency selection
+---
 
-### Task Scheduling Features
-- ✅ Time scheduling for all task types
-- ✅ Single-run task support with date selection
-- ✅ Weekly task with multi-day selection
-- ✅ Daily/Monthly task with time selection
+## Entry 1 - 2026-10-06 (Initial MVP)
+- ✅ Supabase Auth integration (signup/login)
+- ✅ Task CRUD API endpoints
+- ✅ Basic dashboard with task list
+- ✅ Simple task creation form (name + frequency only)
 
 ---
 
@@ -92,15 +95,10 @@ date: 2026-10-07
 
 ---
 
-## Known Issues (As of 2026-10-07)
+## Technical Debt & Known Issues
 - ⚠️ Foreign key constraint required Supabase trigger workaround
-- ⚠️ Task creation form expanded but prompt display needs refinement
-- ⚠️ No advanced scheduling UI yet
 - ⚠️ Encryption infrastructure ready but not fully integrated
-
----
-
-## Technical Debt
+- ⚠️ No advanced scheduling UI yet (basic time picker only)
 - [ ] Refactor users table architecture (currently hybrid auth.users + custom users)
 - [ ] Complete AES-256 encryption integration for prompts
 - [ ] Add comprehensive error handling to API
