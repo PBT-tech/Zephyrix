@@ -60,16 +60,22 @@ export default function ZephyrexApp() {
     return <LoginPage setUser={setUser} />;
   }
 
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+
   return (
     <div style={{ fontFamily: 'sans-serif', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      <Header user={user} onLogout={handleLogout} setPage={setPage} />
-      <Navigation currentPage={page} setPage={setPage} />
-      <main style={{ padding: '20px', flex: 1 }}>
-        {page === 'dashboard' && <Dashboard user={user} setPage={setPage} />}
-        {page === 'create-task' && <CreateTaskForm user={user} setPage={setPage} />}
-        {page === 'calendar' && <CalendarView user={user} />}
-        {page === 'reporting' && <Reporting user={user} />}
-        {page === 'settings' && <Settings user={user} />}
+      <Header user={user} onLogout={handleLogout} setPage={setPage} isMobile={isMobile} />
+      <Navigation currentPage={page} setPage={setPage} isMobile={isMobile} />
+      <main style={{
+        padding: isMobile ? '12px' : '20px',
+        flex: 1,
+        overflowY: 'auto'
+      }}>
+        {page === 'dashboard' && <Dashboard user={user} setPage={setPage} isMobile={isMobile} />}
+        {page === 'create-task' && <CreateTaskForm user={user} setPage={setPage} isMobile={isMobile} />}
+        {page === 'calendar' && <CalendarView user={user} isMobile={isMobile} />}
+        {page === 'reporting' && <Reporting user={user} isMobile={isMobile} />}
+        {page === 'settings' && <Settings user={user} isMobile={isMobile} />}
         {user.user_metadata?.is_system_owner && page === 'admin' && <AdminPanel user={user} />}
       </main>
     </div>
@@ -111,47 +117,105 @@ function LoginPage({ setUser }) {
     }
   };
 
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+
   return (
-    <div style={{ maxWidth: '400px', margin: '50px auto', padding: '20px', border: '1px solid #ccc', borderRadius: '8px' }}>
-      <h1>⚡ ZEPHYRIX</h1>
-      <p style={{ color: '#666' }}>Swift Automation</p>
+    <div style={{
+      maxWidth: isMobile ? '95vw' : '400px',
+      margin: '50px auto',
+      padding: isMobile ? '15px' : '20px',
+      border: '1px solid #ccc',
+      borderRadius: '8px'
+    }}>
+      <h1 style={{ fontSize: isMobile ? '24px' : '32px' }}>⚡ ZEPHYRIX</h1>
+      <p style={{ color: '#666', fontSize: isMobile ? '13px' : '14px' }}>Swift Automation</p>
 
       <form onSubmit={handleSubmit}>
-        <div style={{ marginBottom: '15px' }}>
-          <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Email</label>
+        <div style={{ marginBottom: isMobile ? '12px' : '15px' }}>
+          <label style={{
+            display: 'block',
+            marginBottom: isMobile ? '4px' : '5px',
+            fontWeight: 'bold',
+            fontSize: isMobile ? '13px' : '14px'
+          }}>Email</label>
           <input
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
             placeholder="your@email.com"
-            style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd', boxSizing: 'border-box' }}
+            style={{
+              width: '100%',
+              padding: isMobile ? '10px' : '8px',
+              borderRadius: '4px',
+              border: '1px solid #ddd',
+              boxSizing: 'border-box',
+              fontSize: isMobile ? '16px' : '14px'
+            }}
           />
         </div>
 
-        <div style={{ marginBottom: '15px' }}>
-          <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Password</label>
+        <div style={{ marginBottom: isMobile ? '12px' : '15px' }}>
+          <label style={{
+            display: 'block',
+            marginBottom: isMobile ? '4px' : '5px',
+            fontWeight: 'bold',
+            fontSize: isMobile ? '13px' : '14px'
+          }}>Password</label>
           <input
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
             placeholder="••••••••"
-            style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd', boxSizing: 'border-box' }}
+            style={{
+              width: '100%',
+              padding: isMobile ? '10px' : '8px',
+              borderRadius: '4px',
+              border: '1px solid #ddd',
+              boxSizing: 'border-box',
+              fontSize: isMobile ? '16px' : '14px'
+            }}
           />
         </div>
 
-        {error && <div style={{ color: error.includes('Check your email') ? 'green' : 'red', marginBottom: '15px' }}>{error}</div>}
+        {error && <div style={{
+          color: error.includes('Check your email') ? 'green' : 'red',
+          marginBottom: isMobile ? '12px' : '15px',
+          fontSize: isMobile ? '13px' : '14px'
+        }}>{error}</div>}
 
-        <button type="submit" disabled={isLoading} style={{ width: '100%', padding: '10px', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '4px', cursor: isLoading ? 'not-allowed' : 'pointer', opacity: isLoading ? 0.6 : 1 }}>
+        <button type="submit" disabled={isLoading} style={{
+          width: '100%',
+          padding: isMobile ? '12px' : '10px',
+          backgroundColor: '#007bff',
+          color: 'white',
+          border: 'none',
+          borderRadius: '4px',
+          cursor: isLoading ? 'not-allowed' : 'pointer',
+          opacity: isLoading ? 0.6 : 1,
+          fontSize: isMobile ? '14px' : '15px',
+          fontWeight: 'bold'
+        }}>
           {isLoading ? 'Loading...' : (isSignup ? 'Create Account' : 'Sign In')}
         </button>
       </form>
 
-      <div style={{ marginTop: '20px', textAlign: 'center' }}>
-        <p>
+      <div style={{
+        marginTop: isMobile ? '15px' : '20px',
+        textAlign: 'center'
+      }}>
+        <p style={{ fontSize: isMobile ? '13px' : '14px' }}>
           {isSignup ? 'Have an account?' : "Don't have an account?"}
-          <button type="button" onClick={() => { setIsSignup(!isSignup); setError(''); }} style={{ background: 'none', border: 'none', color: '#007bff', cursor: 'pointer', marginLeft: '5px', textDecoration: 'underline' }}>
+          <button type="button" onClick={() => { setIsSignup(!isSignup); setError(''); }} style={{
+            background: 'none',
+            border: 'none',
+            color: '#007bff',
+            cursor: 'pointer',
+            marginLeft: '5px',
+            textDecoration: 'underline',
+            fontSize: isMobile ? '13px' : '14px'
+          }}>
             {isSignup ? 'Sign In' : 'Sign Up'}
           </button>
         </p>
@@ -160,31 +224,95 @@ function LoginPage({ setUser }) {
   );
 }
 
-function Header({ user, onLogout, setPage }) {
+function Header({ user, onLogout, setPage, isMobile }) {
   return (
-    <header style={{ backgroundColor: '#f8f9fa', padding: '15px 20px', borderBottom: '1px solid #ddd', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-      <h1 style={{ margin: '0', fontSize: '24px' }}>⚡ ZEPHYRIX</h1>
-      <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-        <span>{user?.email}</span>
-        <button onClick={() => setPage('settings')} style={{ padding: '8px 12px', backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Settings</button>
-        <button onClick={onLogout} style={{ padding: '8px 12px', backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Logout</button>
+    <header style={{
+      backgroundColor: '#f8f9fa',
+      padding: isMobile ? '12px 10px' : '15px 20px',
+      borderBottom: '1px solid #ddd',
+      display: 'flex',
+      justifyContent: isMobile ? 'space-around' : 'space-between',
+      alignItems: 'center',
+      flexWrap: 'wrap',
+      gap: isMobile ? '8px' : '10px'
+    }}>
+      <h1 style={{ margin: '0', fontSize: isMobile ? '18px' : '24px', width: isMobile ? '100%' : 'auto', textAlign: isMobile ? 'center' : 'left' }}>⚡ ZEPHYRIX</h1>
+      <div style={{
+        display: 'flex',
+        gap: isMobile ? '6px' : '10px',
+        alignItems: 'center',
+        width: isMobile ? '100%' : 'auto',
+        justifyContent: isMobile ? 'center' : 'flex-end'
+      }}>
+        <span style={{ fontSize: isMobile ? '11px' : '14px', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis' }}>{user?.email}</span>
+        <button onClick={() => setPage('settings')} style={{
+          padding: isMobile ? '6px 8px' : '8px 12px',
+          backgroundColor: '#6c757d',
+          color: 'white',
+          border: 'none',
+          borderRadius: '4px',
+          cursor: 'pointer',
+          fontSize: isMobile ? '11px' : '13px',
+          whiteSpace: 'nowrap'
+        }}>{isMobile ? '⚙️' : 'Settings'}</button>
+        <button onClick={onLogout} style={{
+          padding: isMobile ? '6px 8px' : '8px 12px',
+          backgroundColor: '#dc3545',
+          color: 'white',
+          border: 'none',
+          borderRadius: '4px',
+          cursor: 'pointer',
+          fontSize: isMobile ? '11px' : '13px',
+          whiteSpace: 'nowrap'
+        }}>{isMobile ? '↪️' : 'Logout'}</button>
       </div>
     </header>
   );
 }
 
-function Navigation({ currentPage, setPage }) {
+function Navigation({ currentPage, setPage, isMobile }) {
+  const navButtons = [
+    { page: 'dashboard', label: 'Tasks', emoji: '📋' },
+    { page: 'calendar', label: 'Calendar', emoji: '📅' },
+    { page: 'reporting', label: 'Reporting', emoji: '📊' },
+    { page: 'create-task', label: 'New Task', emoji: '➕' }
+  ];
+
   return (
-    <nav style={{ backgroundColor: '#e9ecef', padding: '10px 20px', display: 'flex', gap: '10px', borderBottom: '1px solid #ddd' }}>
-      <button onClick={() => setPage('dashboard')} style={{ backgroundColor: currentPage === 'dashboard' ? '#007bff' : '#6c757d', color: 'white', border: 'none', padding: '8px 12px', borderRadius: '4px', cursor: 'pointer' }}>📋 Tasks</button>
-      <button onClick={() => setPage('calendar')} style={{ backgroundColor: currentPage === 'calendar' ? '#007bff' : '#6c757d', color: 'white', border: 'none', padding: '8px 12px', borderRadius: '4px', cursor: 'pointer' }}>📅 Calendar</button>
-      <button onClick={() => setPage('reporting')} style={{ backgroundColor: currentPage === 'reporting' ? '#007bff' : '#6c757d', color: 'white', border: 'none', padding: '8px 12px', borderRadius: '4px', cursor: 'pointer' }}>📊 Reporting</button>
-      <button onClick={() => setPage('create-task')} style={{ backgroundColor: currentPage === 'create-task' ? '#007bff' : '#6c757d', color: 'white', border: 'none', padding: '8px 12px', borderRadius: '4px', cursor: 'pointer' }}>➕ New Task</button>
+    <nav style={{
+      backgroundColor: '#e9ecef',
+      padding: isMobile ? '8px 5px' : '10px 20px',
+      display: 'flex',
+      gap: isMobile ? '4px' : '10px',
+      borderBottom: '1px solid #ddd',
+      flexWrap: 'wrap',
+      justifyContent: isMobile ? 'space-around' : 'flex-start'
+    }}>
+      {navButtons.map(btn => (
+        <button
+          key={btn.page}
+          onClick={() => setPage(btn.page)}
+          style={{
+            backgroundColor: currentPage === btn.page ? '#007bff' : '#6c757d',
+            color: 'white',
+            border: 'none',
+            padding: isMobile ? '6px 8px' : '8px 12px',
+            borderRadius: '4px',
+            cursor: 'pointer',
+            fontSize: isMobile ? '11px' : '13px',
+            flex: isMobile ? '1 1 calc(25% - 4px)' : '0 1 auto',
+            minWidth: isMobile ? '50px' : 'auto',
+            whiteSpace: 'nowrap'
+          }}
+        >
+          {isMobile ? btn.emoji : `${btn.emoji} ${btn.label}`}
+        </button>
+      ))}
     </nav>
   );
 }
 
-function Dashboard({ user, setPage }) {
+function Dashboard({ user, setPage, isMobile }) {
   const [tasks, setTasks] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [editingTask, setEditingTask] = useState(null);
@@ -299,10 +427,25 @@ function Dashboard({ user, setPage }) {
       {tasks.length === 0 ? (
         <p>No tasks yet. Create one to get started!</p>
       ) : (
-        <div style={{ display: 'grid', gap: '15px' }}>
+        <div style={{
+          display: 'grid',
+          gap: isMobile ? '10px' : '15px',
+          gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(300px, 1fr))'
+        }}>
           {tasks.map((task) => (
-            <div key={task.id} style={{ padding: '15px', border: '1px solid #ddd', borderRadius: '8px', backgroundColor: '#f8f9fa' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
+            <div key={task.id} style={{
+              padding: isMobile ? '12px' : '15px',
+              border: '1px solid #ddd',
+              borderRadius: '8px',
+              backgroundColor: '#f8f9fa'
+            }}>
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: isMobile ? 'flex-start' : 'start',
+                flexWrap: isMobile ? 'wrap' : 'nowrap',
+                gap: isMobile ? '8px' : '0'
+              }}>
                 <div style={{ flex: 1 }}>
                   <h3 style={{ margin: '0 0 5px 0' }}>{task.name}</h3>
                   {task.description && <p style={{ color: '#666', margin: '5px 0', fontSize: '14px' }}>{task.description}</p>}
@@ -322,11 +465,43 @@ function Dashboard({ user, setPage }) {
                     {task.status && <span>🟢 {task.status === 'active' ? 'Active' : task.status === 'paused' ? 'Paused' : 'Archived'}</span>}
                   </div>
                 </div>
-                <div style={{ display: 'flex', gap: '10px' }}>
-                  <button onClick={() => setEditingTask(task)} style={{ padding: '8px 12px', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>✏️ Edit</button>
-                  <button onClick={() => handleDelete(task.id)} style={{ padding: '8px 12px', backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>🗑️ Delete</button>
-                  <button onClick={() => handleRunTask(task.id)} disabled={executingTaskId === task.id} style={{ padding: '8px 12px', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '4px', cursor: executingTaskId === task.id ? 'not-allowed' : 'pointer', fontSize: '12px', opacity: executingTaskId === task.id ? 0.6 : 1 }}>
-                    {executingTaskId === task.id ? '⏳ Running...' : '▶️ Run Now'}
+                <div style={{
+                  display: 'flex',
+                  gap: isMobile ? '6px' : '10px',
+                  flexWrap: isMobile ? 'wrap' : 'nowrap'
+                }}>
+                  <button onClick={() => setEditingTask(task)} style={{
+                    padding: isMobile ? '6px 8px' : '8px 12px',
+                    backgroundColor: '#007bff',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    fontSize: isMobile ? '11px' : '12px',
+                    flex: isMobile ? '1 1 calc(33% - 4px)' : '0 1 auto'
+                  }}>✏️ {isMobile ? '' : 'Edit'}</button>
+                  <button onClick={() => handleDelete(task.id)} style={{
+                    padding: isMobile ? '6px 8px' : '8px 12px',
+                    backgroundColor: '#dc3545',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    fontSize: isMobile ? '11px' : '12px',
+                    flex: isMobile ? '1 1 calc(33% - 4px)' : '0 1 auto'
+                  }}>🗑️ {isMobile ? '' : 'Delete'}</button>
+                  <button onClick={() => handleRunTask(task.id)} disabled={executingTaskId === task.id} style={{
+                    padding: isMobile ? '6px 8px' : '8px 12px',
+                    backgroundColor: '#28a745',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '4px',
+                    cursor: executingTaskId === task.id ? 'not-allowed' : 'pointer',
+                    fontSize: isMobile ? '11px' : '12px',
+                    opacity: executingTaskId === task.id ? 0.6 : 1,
+                    flex: isMobile ? '1 1 calc(34% - 4px)' : '0 1 auto'
+                  }}>
+                    {executingTaskId === task.id ? '⏳' : '▶️'} {isMobile ? '' : 'Run Now'}
                   </button>
                 </div>
               </div>
@@ -353,7 +528,8 @@ function ExecutionResultModal({ result, onClose, task }) {
   const [message, setMessage] = useState('');
 
   const handleBackdropClick = (e) => {
-    if (e.target.style.backgroundColor === 'rgba(0,0,0,0.5)') {
+    // Only close if clicking directly on the backdrop (the fixed overlay itself)
+    if (e.target.getAttribute('data-backdrop') === 'true') {
       onClose();
     }
   };
@@ -366,7 +542,7 @@ function ExecutionResultModal({ result, onClose, task }) {
       const { data: { session } } = await supabase.auth.getSession();
       const response = await axios.post('/api/approve',
         {
-          executionId: result.executionId,
+          executionId: result.id,
           approved: approved,
           approvalNotes: approvalNotes
         },
@@ -384,8 +560,8 @@ function ExecutionResultModal({ result, onClose, task }) {
   };
 
   return (
-    <div onClick={handleBackdropClick} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, cursor: 'pointer' }}>
-      <div onClick={(e) => e.stopPropagation()} style={{ backgroundColor: 'white', padding: '30px', borderRadius: '8px', maxWidth: '600px', width: '90%', maxHeight: '90vh', overflowY: 'auto', position: 'relative', cursor: 'default' }}>
+    <div data-backdrop="true" onClick={handleBackdropClick} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, cursor: 'pointer', pointerEvents: 'auto' }}>
+      <div onClick={(e) => e.stopPropagation()} style={{ backgroundColor: 'white', padding: '30px', borderRadius: '8px', maxWidth: '600px', width: '90%', maxHeight: '90vh', overflowY: 'auto', position: 'relative', cursor: 'default', pointerEvents: 'auto' }}>
         <button onClick={onClose} style={{ position: 'absolute', top: '10px', right: '10px', backgroundColor: 'transparent', border: 'none', fontSize: '24px', cursor: 'pointer', padding: '0', width: '30px', height: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
         <h2 style={{ marginTop: '0' }}>Task Execution Result</h2>
         <p style={{ color: '#666', marginBottom: '5px' }}>Execution ID: {result.executionId}</p>
@@ -443,7 +619,8 @@ function EditTaskModal({ task, onClose, onSave }) {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleBackdropClick = (e) => {
-    if (e.target.style.backgroundColor === 'rgba(0,0,0,0.5)') {
+    // Only close if clicking directly on the backdrop (the fixed overlay itself)
+    if (e.target.getAttribute('data-backdrop') === 'true') {
       onClose();
     }
   };
@@ -468,8 +645,8 @@ function EditTaskModal({ task, onClose, onSave }) {
   };
 
   return (
-    <div onClick={handleBackdropClick} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, cursor: 'pointer' }}>
-      <div onClick={(e) => e.stopPropagation()} style={{ backgroundColor: 'white', padding: '30px', borderRadius: '8px', maxWidth: '600px', width: '90%', maxHeight: '90vh', overflowY: 'auto', position: 'relative', cursor: 'default' }}>
+    <div data-backdrop="true" onClick={handleBackdropClick} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, cursor: 'pointer', pointerEvents: 'auto' }}>
+      <div onClick={(e) => e.stopPropagation()} style={{ backgroundColor: 'white', padding: '30px', borderRadius: '8px', maxWidth: '600px', width: '90%', maxHeight: '90vh', overflowY: 'auto', position: 'relative', cursor: 'default', pointerEvents: 'auto' }}>
         <button onClick={onClose} style={{ position: 'absolute', top: '10px', right: '10px', backgroundColor: 'transparent', border: 'none', fontSize: '24px', cursor: 'pointer', padding: '0', width: '30px', height: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
         <h2 style={{ marginTop: '0' }}>Edit Task</h2>
         <form onSubmit={handleSubmit}>
@@ -590,7 +767,7 @@ function EditTaskModal({ task, onClose, onSave }) {
   );
 }
 
-function CreateTaskForm({ user, setPage }) {
+function CreateTaskForm({ user, setPage, isMobile }) {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -748,7 +925,7 @@ function CreateTaskForm({ user, setPage }) {
   );
 }
 
-function CalendarView({ user }) {
+function CalendarView({ user, isMobile }) {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [tasks, setTasks] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -822,15 +999,19 @@ function CalendarView({ user }) {
 
       days.push(
         <div key={day} style={{
-          padding: '12px',
+          padding: isMobile ? '8px' : '12px',
           border: '1px solid #ddd',
           backgroundColor: dayTasks.length > 0 ? '#e8f4f8' : 'white',
-          minHeight: '150px',
+          minHeight: isMobile ? '100px' : '150px',
           overflowY: 'auto',
           display: 'flex',
-          flexDirection: 'column'
+          flexDirection: 'column',
+          fontSize: isMobile ? '12px' : '14px'
         }}>
-          <strong style={{ fontSize: '16px', marginBottom: '8px' }}>{day}</strong>
+          <strong style={{
+            fontSize: isMobile ? '13px' : '16px',
+            marginBottom: isMobile ? '4px' : '8px'
+          }}>{day}</strong>
           <div style={{ fontSize: '12px', flex: 1 }}>
             {dayTasks.map(task => (
               <div key={task.id} style={{ color: '#007bff', marginBottom: '4px', wordBreak: 'break-word', lineHeight: '1.3' }}>
@@ -859,9 +1040,24 @@ function CalendarView({ user }) {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '1px', backgroundColor: '#ddd', padding: '1px' }}>
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(7, 1fr)',
+        gap: isMobile ? '0px' : '1px',
+        backgroundColor: '#ddd',
+        padding: isMobile ? '0px' : '1px',
+        overflowX: isMobile ? 'auto' : 'visible'
+      }}>
         {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-          <div key={day} style={{ padding: '10px', backgroundColor: '#f0f0f0', fontWeight: 'bold', textAlign: 'center' }}>{day}</div>
+          <div key={day} style={{
+            padding: isMobile ? '8px 5px' : '10px',
+            backgroundColor: '#f0f0f0',
+            fontWeight: 'bold',
+            textAlign: 'center',
+            fontSize: isMobile ? '12px' : '14px'
+          }}>
+            {isMobile ? day.substring(0, 1) : day}
+          </div>
         ))}
         {renderCalendar()}
       </div>
@@ -873,12 +1069,137 @@ function CalendarView({ user }) {
   );
 }
 
-function Reporting({ user }) {
-  return <div><h2>📊 Reporting</h2><p>Coming soon...</p></div>;
+function Reporting({ user, isMobile }) {
+  const [executionLogs, setExecutionLogs] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    loadExecutionLogs();
+  }, []);
+
+  const loadExecutionLogs = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      // Fetch execution logs (using tasks endpoint to get associated task names)
+      const { data: logs, error } = await supabase
+        .from('execution_logs')
+        .select('id, task_id, status, output, approval_status, started_at, completed_at, execution_type')
+        .eq('user_id', session.user.id)
+        .order('started_at', { ascending: false })
+        .limit(50);
+
+      if (error) throw error;
+
+      // Fetch tasks to get task names
+      const tasksResponse = await axios.get('/api/tasks', {
+        headers: { Authorization: `Bearer ${session.access_token}` }
+      });
+
+      const taskMap = {};
+      tasksResponse.data.tasks.forEach(task => {
+        taskMap[task.id] = task.name;
+      });
+
+      // Combine logs with task names
+      const enrichedLogs = logs.map(log => ({
+        ...log,
+        taskName: taskMap[log.task_id] || 'Unknown Task'
+      }));
+
+      setExecutionLogs(enrichedLogs);
+    } catch (error) {
+      console.error('Failed to load execution logs:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (isLoading) return <div><h2>📊 Execution History</h2><p>Loading...</p></div>;
+
+  return (
+    <div style={{ padding: '20px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+        <h2 style={{ margin: 0 }}>📊 Execution History</h2>
+        <button onClick={loadExecutionLogs} style={{ padding: '8px 12px', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>🔄 Refresh</button>
+      </div>
+
+      {executionLogs.length === 0 ? (
+        <p style={{ color: '#666' }}>No execution logs yet.</p>
+      ) : (
+        <div style={{
+          overflowX: 'auto',
+          width: '100%',
+          maxWidth: '100%'
+        }}>
+          <table style={{
+            width: '100%',
+            borderCollapse: 'collapse',
+            fontSize: isMobile ? '12px' : '14px',
+            minWidth: isMobile ? '400px' : 'auto'
+          }}>
+            <thead>
+              <tr style={{ backgroundColor: '#f0f0f0', borderBottom: '2px solid #ddd' }}>
+                <th style={{ padding: '10px', textAlign: 'left' }}>Task Name</th>
+                <th style={{ padding: '10px', textAlign: 'left' }}>Type</th>
+                <th style={{ padding: '10px', textAlign: 'left' }}>Status</th>
+                <th style={{ padding: '10px', textAlign: 'left' }}>Approval</th>
+                <th style={{ padding: '10px', textAlign: 'left' }}>Started</th>
+                <th style={{ padding: '10px', textAlign: 'left' }}>Duration</th>
+              </tr>
+            </thead>
+            <tbody>
+              {executionLogs.map(log => {
+                const startTime = new Date(log.started_at);
+                const endTime = log.completed_at ? new Date(log.completed_at) : new Date();
+                const durationMs = endTime - startTime;
+                const durationSec = (durationMs / 1000).toFixed(1);
+
+                return (
+                  <tr key={log.id} style={{ borderBottom: '1px solid #eee', backgroundColor: log.status === 'success' ? '#f0f8f0' : '#f8f0f0' }}>
+                    <td style={{ padding: '10px', color: '#007bff' }}>{log.taskName}</td>
+                    <td style={{ padding: '10px', fontSize: '12px', color: '#666' }}>{log.execution_type || 'scheduled'}</td>
+                    <td style={{ padding: '10px' }}>
+                      <span style={{
+                        padding: '4px 8px',
+                        borderRadius: '4px',
+                        backgroundColor: log.status === 'success' ? '#d4edda' : '#f8d7da',
+                        color: log.status === 'success' ? '#155724' : '#721c24'
+                      }}>
+                        {log.status === 'success' ? '✅' : '❌'} {log.status}
+                      </span>
+                    </td>
+                    <td style={{ padding: '10px', fontSize: '12px' }}>
+                      {log.approval_status === 'approved' ? '✅ Approved' : log.approval_status === 'rejected' ? '❌ Rejected' : '⏳ Pending'}
+                    </td>
+                    <td style={{ padding: '10px', fontSize: '12px', color: '#666' }}>{startTime.toLocaleString()}</td>
+                    <td style={{ padding: '10px', fontSize: '12px', color: '#666' }}>{durationSec}s</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      <p style={{ marginTop: '20px', color: '#666', fontSize: '13px' }}>
+        💡 Shows the last 50 execution history entries. Click Refresh to see latest runs.
+      </p>
+    </div>
+  );
 }
 
-function Settings({ user }) {
-  return <div><h2>⚙️ Settings</h2><p>API Key management coming soon...</p></div>;
+function Settings({ user, isMobile }) {
+  return (
+    <div style={{
+      maxWidth: isMobile ? '100%' : '600px',
+      padding: isMobile ? '10px' : '20px'
+    }}>
+      <h2 style={{ fontSize: isMobile ? '18px' : '24px' }}>⚙️ Settings</h2>
+      <p>API Key management coming soon...</p>
+    </div>
+  );
 }
 
 function AdminPanel({ user }) {

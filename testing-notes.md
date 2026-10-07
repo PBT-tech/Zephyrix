@@ -2,9 +2,7 @@
 
 
 #Issues, errors and items to be addressed (in priority order) - 07 October 2026
-1. priority = HIGH. have a way for changes to be added so the task process is updated correctly. 
-2. priority = MEDIUM. Mobile-responsive design.
-3. priority = MEDIUM. Execution history/logs not displayed to user.
+1. priority = HIGH. have a way for changes to be added so the task process is updated correctly.
 
 
 
@@ -51,6 +49,43 @@ Select Days — Click day buttons to toggle them on/off, Set Time — Enter hour
 ---
 
 # RESOLVED ITEMS - 07 October 2026
+
+## ✅ Entry 21: Bug Fix - Modal Click-Away Not Working
+**Status:** COMPLETED - 2026-10-07
+**Root Cause:** Backdrop click detection used `e.target.style.backgroundColor === 'rgba(0,0,0,0.5)'` which is unreliable
+**What was fixed:**
+- Changed backdrop detection to use `e.target === e.currentTarget` (reliable element comparison)
+- Applied fix to both ExecutionResultModal and EditTaskModal
+- Fixed bug where `result.executionId` should be `result.id` in approval API call
+- Both modals now close correctly when clicking the overlay/backdrop
+
+## ✅ Entry 20: Mobile-Responsive Design - Full Responsive Overhaul
+**Status:** COMPLETED - 2026-10-07
+**What was done:**
+- Implemented mobile-first responsive design with 768px breakpoint
+- Header: Responsive padding, stacked layout, icon-only buttons on mobile
+- Navigation: Emoji-only buttons on mobile, flex-based equal-width layout
+- Dashboard: Task cards stack to single column, responsive button sizing and labels
+- Calendar: Responsive grid, abbreviated day names on mobile, smaller boxes (100px)
+- Reporting table: Horizontal scroll support, responsive font sizes
+- Forms: Larger touch targets (16px font), responsive padding
+- Login page: 95vw max-width on mobile, responsive form spacing
+- All interactive elements: Touch-friendly sizes, readable text
+- No dependencies: Pure CSS flexbox/grid implementation
+
+## ✅ Entry 19: Execution History Display - User-Facing Logs
+**Status:** COMPLETED - 2026-10-07
+**What was done:**
+- Created Reporting tab component with full execution history table
+- Displays last 50 execution logs sorted by date (newest first)
+- Shows: Task name, Type, Status (with icon), Approval status, Start time, Duration
+- Color-coded rows: green for success, red for failures
+- Status badges with indicators (✅ Approved, ❌ Rejected, ⏳ Pending)
+- Calculates and displays duration in seconds for each execution
+- Auto-enriches logs with task metadata and names
+- Includes Refresh button for manual cache invalidation
+- Responsive table layout with horizontal scroll support
+- Users can now monitor all task automation results
 
 ## ✅ Entry 18: Calendar View Enhancement - Larger Boxes & Show All Tasks
 **Status:** COMPLETED - 2026-10-07

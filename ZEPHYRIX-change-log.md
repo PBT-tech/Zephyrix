@@ -5,7 +5,92 @@ date: 2026-10-07
 
 # ZEPHYRIX Change Log
 
-## Entry 18 - 2026-10-07 ⭐ LATEST
+## Entry 21 - 2026-10-07 ⭐ LATEST
+
+### Bug Fix - Modal Click-Away Not Working (REFINED)
+- ✅ Fixed backdrop click detection in ExecutionResultModal
+- ✅ Fixed backdrop click detection in EditTaskModal
+- ✅ Root cause (v1): `e.target.style.backgroundColor === 'rgba(0,0,0,0.5)'` doesn't work
+- ✅ Solution (v2): Changed to `e.target === e.currentTarget` (more reliable)
+- ✅ Solution (v3 - FINAL): Added `data-backdrop="true"` attribute check + `pointerEvents: 'auto'`
+  - More robust: explicitly checks for backdrop element
+  - Prevents event delegation issues
+  - Ensures flex layout doesn't interfere
+- ✅ Also fixed: Changed `result.executionId` to `result.id` for correct API call
+
+### Issue
+Users reported clicking outside modal didn't close it. Multiple approaches tested:
+1. Style property check (unreliable)
+2. Event target comparison (can fail with flex layouts)
+3. Data attribute check (most reliable) ✅
+
+### Result
+Both modals now close correctly when clicking the overlay backdrop. Tested with flex layouts and pointer-events.
+
+---
+
+## Entry 20 - 2026-10-07
+
+### Mobile-Responsive Design - Full Responsive Overhaul
+- ✅ Implemented mobile detection (viewport < 768px)
+- ✅ Header: Responsive padding, stacked layout on mobile, icon-only buttons
+- ✅ Navigation: Converted to emoji-only buttons on mobile, equal-width flex layout
+- ✅ Dashboard: Task cards stack to single column on mobile, responsive button sizing
+- ✅ Task buttons: Stack to 3-column flex layout on mobile, icon-only labels
+- ✅ Calendar: Responsive grid with reduced padding/font on mobile, day names abbreviated (S/M/T)
+- ✅ Calendar boxes: Smaller on mobile (100px vs 150px), responsive text sizing
+- ✅ Reporting table: Horizontal scroll on mobile, smaller font sizes
+- ✅ Forms: Responsive padding, larger touch targets (16px font for mobile inputs)
+- ✅ Login page: Max-width 95vw on mobile, responsive form spacing
+- ✅ All buttons: Smaller padding, reduced font sizes, emoji-only labels on mobile
+
+### Responsive Breakpoints
+- Mobile: < 768px width
+  - Padding: 10px (header/nav), 12px (forms)
+  - Font sizes: 11-13px (buttons/labels), 16px (form inputs)
+  - Button styling: Emoji-only, 3-column flex wrapping
+  - Calendar: Day names abbreviated (S/M/T/W/T/F/S)
+  - Task cards: Single column, responsive button layout
+
+- Desktop: ≥ 768px width
+  - Padding: 15-20px (header/nav), 20px (forms)
+  - Font sizes: 13-14px (buttons), 14px (labels)
+  - Button styling: Full labels with emoji
+  - Calendar: Full day names, responsive 7-column grid
+  - Task cards: Multi-column grid layout
+
+### Features
+- Touch-friendly: Larger buttons and input fields on mobile
+- Bandwidth-friendly: Emoji-only labels reduce text rendering
+- Readable: Font sizes optimized for mobile screens
+- Fast: No additional libraries, pure CSS flexbox/grid
+- Maintains functionality: All features accessible on mobile
+
+---
+
+## Entry 19 - 2026-10-07
+
+### Execution History Display - User-Facing Logs
+- ✅ Created Reporting tab component with execution history table
+- ✅ Shows last 50 execution logs sorted by date (newest first)
+- ✅ Displays: Task name, Execution type, Status (with icon), Approval status, Start time, Duration
+- ✅ Color-coded rows: green background for success, red for failures
+- ✅ Status badges: ✅ Success (green), ❌ Failed (red), with approval status indicators
+- ✅ Duration calculation: Shows seconds elapsed between start and completion
+- ✅ Auto-loads task names and enriches logs with task metadata
+- ✅ Refresh button to reload execution history
+- ✅ Responsive table layout with horizontal scroll support
+- ✅ Empty state message when no executions exist
+
+### Features
+- Shows real execution history with status and results
+- Approval workflow status visible (Pending/Approved/Rejected)
+- Performance data: duration of each task execution
+- User can monitor task automation results over time
+
+---
+
+## Entry 18 - 2026-10-07
 
 ### Calendar View Enhancement - Larger Boxes & Show All Tasks
 - ✅ Increased minHeight from 80px to 150px (nearly 2x larger)
