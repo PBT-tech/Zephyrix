@@ -2,12 +2,13 @@
 
 
 #Issues, errors and items to be addressed (in priority order) - 07 October 2026
-1. priority = HIGH. Task execution results need approval workflow refinement, where approval is required.
-2. priority = MEDIUM. Takes a little while to load tasks (performance optimization).
-3. priority = MEDIUM. Calendar view is not working.
-4. priority = MEDIUM. Mobile-responsive design.
-5. priority = MEDIUM. Execution history/logs not displayed to user.
-6. priority = MEDIUM. Modal need x to close the modal in the top right corner.
+1. High Priority - prompt and success criteria not saving in task.
+2. priority = HIGH. Task execution results need approval workflow refinement, where approval is required.
+3. priority = MEDIUM. Takes a little while to load tasks (performance optimization).
+4. priority = MEDIUM. Calendar view is not working.
+5. priority = MEDIUM. Mobile-responsive design.
+6. priority = MEDIUM. Execution history/logs not displayed to user.
+7. priority = MEDIUM. Modal need x to close the modal in the top right  corner or click away closes it.
 
 
 
@@ -32,7 +33,7 @@ Select Days — Click day buttons to toggle them on/off, Set Time — Enter hour
 
 **Phase 2**
 1. Embedded quick-start guide in support menu.
-2. Input validation with helpful feedback. Real-time + pre-creation Validation / prompts ("You said read /data but didn't specify output?").
+2. Input validation with helpful feedback. Real-time + pre-creation Validation / prompts ("You said read /data but didn't specify output?"), which also checks for efficiency and effectiveness in meeting goal / success criteria.
 3. Support - Example tasks to learn from on every field.
 4. Also works with OpenAI / ChatGPT and Google Gemini (same dashboard any LLM)
 5. Guided Task Creation - Suggest 2 types of business tasks and 1 personal task not already scheduled that can be automated / managed by Claude, Manus, etc; then let's build type button / option; Guided wizard (step-by-step questions); 

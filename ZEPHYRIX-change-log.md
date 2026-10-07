@@ -5,7 +5,42 @@ date: 2026-10-07
 
 # ZEPHYRIX Change Log
 
-## Entry 7 - 2026-10-07 ⭐ LATEST
+## Entry 9 - 2026-10-07 ⭐ LATEST
+
+### Comprehensive Audit & Missing Fields Fix
+- ✅ Added Priority field to Create & Edit forms (low/medium/high)
+- ✅ Added Requires Approval checkbox to forms (MVP feature)
+- ✅ Added Status field to forms (active/paused/archived)
+- ✅ Updated API GET endpoint to include priority, status, requires_approval
+- ✅ Updated API POST/PUT endpoints to handle all 3 new fields
+- ✅ Created AUDIT-DATABASE-FORM-CONSISTENCY.md for future checks
+- ✅ Verified data type consistency (arrays vs strings)
+
+### Root Cause of Recent Bugs
+Database schema had fields that weren't exposed in forms or API. This caused:
+- Entry 7: Missing form fields (prompt, success_criteria, input/output files in edit modal)
+- Entry 8: Missing database columns in GET query (prompt, success_criteria, etc)
+
+**Prevention:** Audit document now tracks all database columns with status (in forms / system-set / read-only)
+
+---
+
+## Entry 8 - 2026-10-07
+
+### CRITICAL FIX: Prompt & Success Criteria Not Saving
+- ✅ Root cause: Entry 6 optimization removed prompt/success_criteria from GET select
+- ✅ Added prompt, success_criteria, input_files, output_files back to GET select
+- ✅ Fixed PUT endpoint to properly handle all field updates (not skip empty values)
+- ✅ Improved PUT logic to explicitly check if fields are provided before updating
+
+### Issue
+Tasks were loading without prompt/success_criteria fields, causing them to be empty when editing, resulting in data loss on save.
+
+**Root Cause:** Performance optimization in Entry 6 pruned too aggressively—removed essential fields from SELECT query.
+
+---
+
+## Entry 7 - 2026-10-07
 
 ### Bug Fix: Complete Edit Task Modal
 - ✅ Added missing Input Files/Paths field to edit modal

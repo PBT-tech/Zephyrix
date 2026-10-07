@@ -39,10 +39,10 @@ export default async function handler(req, res) {
     if (req.method === 'GET') {
       console.log('GET tasks for user:', user.id);
       try {
-        // Optimize: select only necessary columns
+        // Optimize: select only necessary columns (include prompt & success_criteria for editing)
         const { data, error } = await supabase
           .from('tasks')
-          .select('id,name,description,frequency,created_at,status,scheduled_time,scheduled_date,days_of_week')
+          .select('id,name,description,prompt,success_criteria,frequency,created_at,status,priority,requires_approval,scheduled_time,scheduled_date,days_of_week,input_files,output_files')
           .eq('user_id', user.id)
           .order('created_at', { ascending: false })
           .limit(50); // Paginate: max 50 tasks per request
@@ -66,7 +66,7 @@ export default async function handler(req, res) {
     if (req.method === 'POST') {
       console.log('POST create task for user:', user.id);
       try {
-        const { name, description, prompt, frequency, success_criteria, input_files, output_files } = req.body;
+        const { name, description, prompt, frequency, success_criteria, input_files, output_files, status, priority, requires_approval } = req.body;
 
         console.log('Task data received:', { name, frequency, hasPrompt: !!prompt });
 
@@ -81,7 +81,9 @@ export default async function handler(req, res) {
           frequency: frequency || 'weekly',
           user_id: user.id,
           team_id: user.id,
-          status: 'active',
+          status: status || 'active',
+          priority: priority || 'medium',
+          requires_approval: requires_approval || false,
           success_criteria: success_criteria ? success_criteria.trim() : null,
           input_files: input_files ? input_files.split(',').map(f => f.trim()).filter(f => f) : [],
           output_files: output_files ? output_files.split(',').map(f => f.trim()).filter(f => f) : []
@@ -113,27 +115,33 @@ export default async function handler(req, res) {
     if (req.method === 'PUT') {
       console.log('PUT update task for user:', user.id);
       try {
-        const { id, name, description, prompt, frequency, success_criteria, input_files, output_files, scheduled_time, scheduled_date, days_of_week } = req.body;
+        const { id, name, description, prompt, frequency, success_criteria, input_files, output_files, scheduled_time, scheduled_date, days_of_week, status, priority, requires_approval } = req.body;
 
         if (!id) {
           return res.status(400).json({ error: 'Task ID required' });
         }
 
-        const updateData = {
-          name: name ? name.trim() : undefined,
-          description: description ? description.trim() : undefined,
-          prompt: prompt ? prompt.trim() : undefined,
-          frequency: frequency || undefined,
-          success_criteria: success_criteria ? success_criteria.trim() : undefined,
-          input_files: input_files ? input_files.split(',').map(f => f.trim()).filter(f => f) : undefined,
-          output_files: output_files ? output_files.split(',').map(f => f.trim()).filter(f => f) : undefined,
-          scheduled_time: scheduled_time || undefined,
-          scheduled_date: scheduled_date || undefined,
-          days_of_week: days_of_week || undefined
-        };
+        const updateData = {};
 
-        // Remove undefined fields
-        Object.keys(updateData).forEach(key => updateData[key] === undefined && delete updateData[key]);
+        // Only add fields if they are explicitly provided (allow empty strings/arrays)
+        if (name !== undefined) updateData.name = name.trim();
+        if (description !== undefined) updateData.description = description.trim();
+        if (prompt !== undefined) updateData.prompt = prompt.trim();
+        if (frequency !== undefined) updateData.frequency = frequency;
+        if (success_criteria !== undefined) updateData.success_criteria = success_criteria.trim();
+        if (scheduled_time !== undefined) updateData.scheduled_time = scheduled_time;
+        if (scheduled_date !== undefined) updateData.scheduled_date = scheduled_date;
+        if (days_of_week !== undefined) updateData.days_of_week = days_of_week;
+        if (status !== undefined) updateData.status = status;
+        if (priority !== undefined) updateData.priority = priority;
+        if (requires_approval !== undefined) updateData.requires_approval = requires_approval;
+
+        if (input_files !== undefined) {
+          updateData.input_files = input_files ? input_files.split(',').map(f => f.trim()).filter(f => f) : [];
+        }
+        if (output_files !== undefined) {
+          updateData.output_files = output_files ? output_files.split(',').map(f => f.trim()).filter(f => f) : [];
+        }
 
         const { data, error } = await supabase
           .from('tasks')

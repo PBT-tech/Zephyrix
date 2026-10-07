@@ -359,7 +359,10 @@ function EditTaskModal({ task, onClose, onSave }) {
     output_files: task.output_files || '',
     scheduled_time: task.scheduled_time || '09:00',
     scheduled_date: task.scheduled_date || new Date().toISOString().split('T')[0],
-    days_of_week: Array.isArray(task.days_of_week) ? task.days_of_week : [1, 2, 3, 4, 5]
+    days_of_week: Array.isArray(task.days_of_week) ? task.days_of_week : [1, 2, 3, 4, 5],
+    status: task.status || 'active',
+    requires_approval: task.requires_approval || false,
+    priority: task.priority || 'medium'
   });
   const [isLoading, setIsLoading] = useState(false);
 
@@ -464,6 +467,31 @@ function EditTaskModal({ task, onClose, onSave }) {
             </div>
           )}
 
+          <div style={{ marginBottom: '15px' }}>
+            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Priority</label>
+            <select value={formData.priority} onChange={(e) => setFormData({...formData, priority: e.target.value})} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd', boxSizing: 'border-box' }}>
+              <option value="low">Low</option>
+              <option value="medium">Medium</option>
+              <option value="high">High</option>
+            </select>
+          </div>
+
+          <div style={{ marginBottom: '15px' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 'bold' }}>
+              <input type="checkbox" checked={formData.requires_approval} onChange={(e) => setFormData({...formData, requires_approval: e.target.checked})} />
+              Requires Approval Before Running
+            </label>
+          </div>
+
+          <div style={{ marginBottom: '15px' }}>
+            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Status</label>
+            <select value={formData.status} onChange={(e) => setFormData({...formData, status: e.target.value})} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd', boxSizing: 'border-box' }}>
+              <option value="active">Active</option>
+              <option value="paused">Paused</option>
+              <option value="archived">Archived</option>
+            </select>
+          </div>
+
           <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
             <button type="button" onClick={onClose} style={{ padding: '10px 20px', backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Cancel</button>
             <button type="submit" disabled={isLoading} style={{ padding: '10px 20px', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '4px', cursor: isLoading ? 'not-allowed' : 'pointer', opacity: isLoading ? 0.6 : 1 }}>
@@ -487,7 +515,10 @@ function CreateTaskForm({ user, setPage }) {
     output_files: '',
     scheduled_time: '09:00',
     scheduled_date: new Date().toISOString().split('T')[0],
-    days_of_week: [1, 2, 3, 4, 5] // Monday-Friday by default
+    days_of_week: [1, 2, 3, 4, 5], // Monday-Friday by default
+    status: 'active',
+    requires_approval: false,
+    priority: 'medium'
   });
   const [isLoading, setIsLoading] = useState(false);
 
@@ -592,6 +623,31 @@ function CreateTaskForm({ user, setPage }) {
             </div>
           </div>
         )}
+
+        <div style={{ marginBottom: '15px' }}>
+          <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Priority</label>
+          <select value={formData.priority} onChange={(e) => setFormData({...formData, priority: e.target.value})} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd', boxSizing: 'border-box' }}>
+            <option value="low">Low</option>
+            <option value="medium">Medium</option>
+            <option value="high">High</option>
+          </select>
+        </div>
+
+        <div style={{ marginBottom: '15px' }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 'bold' }}>
+            <input type="checkbox" checked={formData.requires_approval} onChange={(e) => setFormData({...formData, requires_approval: e.target.checked})} />
+            Requires Approval Before Running
+          </label>
+        </div>
+
+        <div style={{ marginBottom: '15px' }}>
+          <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Status</label>
+          <select value={formData.status} onChange={(e) => setFormData({...formData, status: e.target.value})} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd', boxSizing: 'border-box' }}>
+            <option value="active">Active</option>
+            <option value="paused">Paused</option>
+            <option value="archived">Archived</option>
+          </select>
+        </div>
 
         <div style={{ display: 'flex', gap: '10px' }}>
           <button type="submit" disabled={isLoading} style={{ padding: '10px 20px', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '4px', cursor: isLoading ? 'not-allowed' : 'pointer', opacity: isLoading ? 0.6 : 1 }}>
