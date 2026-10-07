@@ -306,10 +306,19 @@ function Dashboard({ user, setPage }) {
                 <div style={{ flex: 1 }}>
                   <h3 style={{ margin: '0 0 5px 0' }}>{task.name}</h3>
                   {task.description && <p style={{ color: '#666', margin: '5px 0', fontSize: '14px' }}>{task.description}</p>}
-                  <div style={{ display: 'flex', gap: '15px', fontSize: '13px', color: '#666', margin: '5px 0' }}>
+                  <div style={{ display: 'flex', gap: '15px', fontSize: '13px', color: '#666', margin: '5px 0', flexWrap: 'wrap' }}>
                     <span>📅 {task.frequency.charAt(0).toUpperCase() + task.frequency.slice(1)}</span>
                     {task.scheduled_time && <span>🕐 {task.scheduled_time}</span>}
                     {task.frequency === 'once' && task.scheduled_date && <span>📆 {task.scheduled_date}</span>}
+                    {task.frequency === 'weekly' && task.days_of_week && (
+                      <span>📆 {
+                        (() => {
+                          const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                          const days = Array.isArray(task.days_of_week) ? task.days_of_week : [];
+                          return days.map(d => dayNames[d]).join(', ');
+                        })()
+                      }</span>
+                    )}
                     {task.status && <span>🟢 {task.status === 'active' ? 'Active' : task.status === 'paused' ? 'Paused' : 'Archived'}</span>}
                   </div>
                 </div>

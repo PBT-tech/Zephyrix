@@ -2,10 +2,11 @@
 
 
 #Issues, errors and items to be addressed (in priority order) - 07 October 2026
-1. priority = MEDIUM. Calendar view is not working.
-2. priority = MEDIUM. Mobile-responsive design.
-3. priority = MEDIUM. Execution history/logs not displayed to user.
-4. priority = MEDIUM. Modal needs X button to close in top right corner or click-away closes it.
+1. priority = HIGH. have a way for changes to be added so the task process is updated correctly. 
+2. priority = MEDIUM. Calendar view is not working.
+3. priority = MEDIUM. Mobile-responsive design.
+4. priority = MEDIUM. Execution history/logs not displayed to user.
+5. priority = MEDIUM. Modal needs X button to close in top right corner or click-away closes it.
 
 
 
@@ -52,6 +53,15 @@ Select Days — Click day buttons to toggle them on/off, Set Time — Enter hour
 ---
 
 # RESOLVED ITEMS - 07 October 2026
+
+## ✅ Entry 14: Task Card Enhancement - Show Weekly Days
+**Status:** COMPLETED - 2026-10-07
+**What was done:**
+- Added day display for weekly tasks on task cards
+- Converts days_of_week array (0-6 indices) to day names (Sun-Sat)
+- Displays as: "📅 Mon, Wed, Fri" format
+- Only shows when frequency is "weekly"
+- Added flex-wrap for responsive layout
 
 ## ✅ Entry 13: CRITICAL BUG FIX - Task Update Failing
 **Status:** COMPLETED - 2026-10-07

@@ -5,7 +5,26 @@ date: 2026-10-07
 
 # ZEPHYRIX Change Log
 
-## Entry 13 - 2026-10-07 ⭐ LATEST
+## Entry 14 - 2026-10-07 ⭐ LATEST
+
+### Task Card Enhancement - Show Weekly Days
+- ✅ Display specific days for weekly tasks (Mon, Tue, Wed, etc)
+- ✅ Convert days_of_week array to day names
+- ✅ Show on task card: "📅 Mon, Wed, Fri"
+- ✅ Added flex-wrap for better responsive layout
+
+### Before
+- 📅 Weekly
+- 🕐 09:00
+
+### After
+- 📅 Weekly
+- 🕐 09:00
+- 📆 Mon, Wed, Fri
+
+---
+
+## Entry 13 - 2026-10-07
 
 ### CRITICAL BUG FIX: Task Update Failing
 - ✅ Fixed "d.split is not a function" error on task edit
