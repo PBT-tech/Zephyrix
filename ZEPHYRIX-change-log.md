@@ -5,7 +5,46 @@ date: 2026-10-07
 
 # ZEPHYRIX Change Log
 
-## Entry 21 - 2026-10-07 ⭐ LATEST
+## Entry 22 - 2026-10-07 ⭐ LATEST
+
+### Intelligent Task Sync Advisor - Smart Multi-Task Updates
+- ✅ Created `/api/sync-analysis` endpoint - finds related tasks intelligently
+- ✅ Claude-powered question generation - analyzes changes & generates platform-specific questions
+- ✅ Created `/api/sync-apply` endpoint - bulk applies changes based on user approval
+- ✅ Task relationship detection by:
+  - Task name similarity (e.g., "RLF scan (LinkedIn)" + "RLF scan (Twitter)")
+  - Prompt/criteria similarity (same automation logic)
+  - Domain/topic matching (not just platforms)
+- ✅ Added TaskSyncModal component - shows intelligent questions + task selection
+- ✅ Integrated with EditTaskModal - detects significant changes, triggers sync flow
+
+### How It Works
+1. User edits a task (e.g., changes prompt, criteria, or timing)
+2. System detects related tasks (same base task on other platforms/domains)
+3. Claude generates intelligent questions:
+   - Platform-specific timing adjustments ("LinkedIn peaks 9 AM, Twitter peaks 2 PM")
+   - Criteria adaptation ("Facebook audience needs different thresholds")
+   - Keyword translation ("Twitter RLF jargon differs from LinkedIn")
+4. User selects which tasks to update + answers questions
+5. System applies changes intelligently (with platform-specific adjustments)
+6. All related tasks stay in sync
+
+### Questions Are Not Generic
+Instead of "Apply to Twitter? Yes/No", Claude asks:
+- "You tightened Series A criteria. LinkedIn sees signals 4-6 hours after Twitter. Adjust threshold?"
+- "LinkedIn success = 2-3% engagement. Twitter = 8-12%. Calibrate differently?"
+- "These keywords are LinkedIn jargon. Translate for Twitter's RLF community?"
+
+### Features
+- Finds related tasks by name pattern, prompt similarity, and domain
+- Platform-aware timing adjustments (peak hours per platform)
+- Conversational sync flow (questions + checkboxes)
+- Bulk update with user control (select which tasks to update)
+- Audit trail (changes logged per task)
+
+---
+
+## Entry 21 - 2026-10-07
 
 ### Bug Fix - Modal Click-Away Not Working (REFINED)
 - ✅ Fixed backdrop click detection in ExecutionResultModal

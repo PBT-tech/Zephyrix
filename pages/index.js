@@ -318,6 +318,7 @@ function Dashboard({ user, setPage, isMobile }) {
   const [editingTask, setEditingTask] = useState(null);
   const [executingTaskId, setExecutingTaskId] = useState(null);
   const [executionResult, setExecutionResult] = useState(null);
+  const [syncData, setSyncData] = useState(null);
   const [cacheTime, setCacheTime] = useState(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -511,7 +512,41 @@ function Dashboard({ user, setPage, isMobile }) {
       )}
 
       {editingTask && (
-        <EditTaskModal task={editingTask} onClose={() => setEditingTask(null)} onSave={async () => { setEditingTask(null); loadTasks(true); }} />
+        <EditTaskModal task={editingTask} onClose={() => setEditingTask(null)} onSave={async (syncPayload) => {
+          if (syncPayload && syncPayload.relatedTasks && syncPayload.relatedTasks.length > 0) {
+            setSyncData(syncPayload);
+          } else {
+            setEditingTask(null);
+            loadTasks(true);
+          }
+        }} />
+      )}
+
+      {syncData && (
+        <TaskSyncModal
+          syncData={syncData}
+          onClose={() => { setSyncData(null); setEditingTask(null); loadTasks(true); }}
+          onApply={async (approval) => {
+            try {
+              const { data: { session } } = await supabase.auth.getSession();
+              await axios.post('/api/sync-apply',
+                {
+                  sourceTaskId: editingTask.id,
+                  selectedTaskIds: approval.selectedTasks,
+                  changes: syncData.changes,
+                  answers: approval.answers
+                },
+                { headers: { Authorization: `Bearer ${session.access_token}` } }
+              );
+              alert('Changes applied to related tasks!');
+              setSyncData(null);
+              setEditingTask(null);
+              loadTasks(true);
+            } catch (error) {
+              alert('Error applying changes: ' + error.message);
+            }
+          }}
+        />
       )}
 
       {executionResult && (
@@ -631,9 +666,43 @@ function EditTaskModal({ task, onClose, onSave }) {
 
     try {
       const { data: { session } } = await supabase.auth.getSession();
+
+      // Calculate what changed
+      const changes = {};
+      Object.keys(formData).forEach(key => {
+        if (JSON.stringify(task[key]) !== JSON.stringify(formData[key])) {
+          changes[key] = { old: task[key], new: formData[key] };
+        }
+      });
+
+      // Save the task
       await axios.put('/api/tasks', formData, {
         headers: { Authorization: `Bearer ${session.access_token}` }
       });
+
+      // If there are significant changes, check for related tasks to sync
+      if (Object.keys(changes).length > 0 && (changes.prompt || changes.success_criteria || changes.scheduled_time)) {
+        try {
+          const syncResponse = await axios.post('/api/sync-analysis',
+            {
+              taskId: task.id,
+              taskName: task.name,
+              changes: changes,
+              taskData: formData
+            },
+            { headers: { Authorization: `Bearer ${session.access_token}` } }
+          );
+
+          if (syncResponse.data.relatedTasks && syncResponse.data.relatedTasks.length > 0) {
+            // Show sync modal instead of closing
+            onSave(syncResponse.data); // Pass sync data to parent
+            return;
+          }
+        } catch (syncError) {
+          console.log('Sync analysis skipped:', syncError.message);
+        }
+      }
+
       alert('Task updated successfully!');
       onSave();
     } catch (error) {
@@ -1186,6 +1255,100 @@ function Reporting({ user, isMobile }) {
       <p style={{ marginTop: '20px', color: '#666', fontSize: '13px' }}>
         💡 Shows the last 50 execution history entries. Click Refresh to see latest runs.
       </p>
+    </div>
+  );
+}
+
+function TaskSyncModal({ syncData, onClose, onApply }) {
+  const [isLoading, setIsLoading] = useState(false);
+  const [selectedTasks, setSelectedTasks] = useState({});
+  const [answers, setAnswers] = useState({});
+
+  const handleTaskToggle = (taskId) => {
+    setSelectedTasks(prev => ({
+      ...prev,
+      [taskId]: !prev[taskId]
+    }));
+  };
+
+  const handleAnswer = (questionIndex, answer) => {
+    setAnswers(prev => ({
+      ...prev,
+      [questionIndex]: answer
+    }));
+  };
+
+  const handleApply = async () => {
+    setIsLoading(true);
+    try {
+      await onApply({
+        selectedTasks: Object.keys(selectedTasks).filter(id => selectedTasks[id]),
+        answers: answers
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div data-backdrop="true" onClick={(e) => e.target.getAttribute('data-backdrop') === 'true' && onClose()} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1001, cursor: 'pointer' }}>
+      <div onClick={(e) => e.stopPropagation()} style={{ backgroundColor: 'white', padding: '30px', borderRadius: '8px', maxWidth: '700px', width: '90%', maxHeight: '90vh', overflowY: 'auto', position: 'relative', cursor: 'default' }}>
+        <button onClick={onClose} style={{ position: 'absolute', top: '10px', right: '10px', backgroundColor: 'transparent', border: 'none', fontSize: '24px', cursor: 'pointer' }}>✕</button>
+        <h2 style={{ marginTop: '0' }}>Apply Changes to Related Tasks</h2>
+
+        <p style={{ color: '#666', marginBottom: '20px' }}>
+          Found {syncData.relatedTasks?.length || 0} related task(s). Platform-specific questions:
+        </p>
+
+        {syncData.questions?.map((question, idx) => (
+          <div key={idx} style={{ backgroundColor: '#f0f8ff', padding: '15px', borderRadius: '8px', marginBottom: '15px' }}>
+            <p style={{ fontWeight: 'bold', marginBottom: '8px', color: '#003d7a' }}>Q{idx + 1}: {question.text}</p>
+            <p style={{ fontSize: '13px', color: '#666', marginBottom: '10px' }}>{question.explanation}</p>
+            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+              {question.options?.map(option => (
+                <button
+                  key={option}
+                  onClick={() => handleAnswer(idx, option)}
+                  style={{
+                    padding: '8px 12px',
+                    backgroundColor: answers[idx] === option ? '#007bff' : '#e9ecef',
+                    color: answers[idx] === option ? 'white' : '#333',
+                    border: 'none',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    fontSize: '12px'
+                  }}
+                >
+                  {option}
+                </button>
+              ))}
+            </div>
+          </div>
+        ))}
+
+        <h3 style={{ marginTop: '20px', marginBottom: '10px' }}>Select tasks to update:</h3>
+        {syncData.relatedTasks?.map(relTask => (
+          <div key={relTask.id} style={{ display: 'flex', alignItems: 'center', marginBottom: '10px', padding: '10px', backgroundColor: '#f9f9f9', borderRadius: '4px' }}>
+            <input
+              type="checkbox"
+              checked={selectedTasks[relTask.id] || false}
+              onChange={() => handleTaskToggle(relTask.id)}
+              style={{ marginRight: '10px', cursor: 'pointer' }}
+            />
+            <div>
+              <strong>{relTask.name}</strong>
+              <p style={{ fontSize: '12px', color: '#666', margin: '2px 0' }}>{relTask.platform || 'N/A'} • {relTask.scheduled_time}</p>
+            </div>
+          </div>
+        ))}
+
+        <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '20px' }}>
+          <button onClick={onClose} disabled={isLoading} style={{ padding: '10px 20px', backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Cancel</button>
+          <button onClick={handleApply} disabled={isLoading || Object.keys(selectedTasks).filter(id => selectedTasks[id]).length === 0} style={{ padding: '10px 20px', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', opacity: isLoading ? 0.6 : 1 }}>
+            {isLoading ? '⏳ Syncing...' : 'Apply to Selected'}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
