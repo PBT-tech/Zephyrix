@@ -190,12 +190,27 @@ function Dashboard({ user, setPage }) {
   const [editingTask, setEditingTask] = useState(null);
   const [executingTaskId, setExecutingTaskId] = useState(null);
   const [executionResult, setExecutionResult] = useState(null);
+  const [cacheTime, setCacheTime] = useState(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
-    loadTasks();
+    // Only load on mount if cache is empty
+    if (tasks.length === 0) {
+      loadTasks();
+    }
   }, []);
 
-  const loadTasks = async () => {
+  const loadTasks = async (forceRefresh = false) => {
+    // Skip if cache is fresh (less than 5 minutes old)
+    if (!forceRefresh && cacheTime && Date.now() - cacheTime < 300000) {
+      console.log('Using cached tasks');
+      setIsLoading(false);
+      return;
+    }
+
+    if (forceRefresh) setIsRefreshing(true);
+    else setIsLoading(true);
+
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
@@ -204,10 +219,13 @@ function Dashboard({ user, setPage }) {
         headers: { Authorization: `Bearer ${session.access_token}` }
       });
       setTasks(response.data.tasks || []);
+      setCacheTime(Date.now());
+      console.log('Tasks loaded and cached:', response.data.tasks?.length || 0);
     } catch (error) {
       console.error('Failed to load tasks:', error);
     } finally {
       setIsLoading(false);
+      setIsRefreshing(false);
     }
   };
 
@@ -249,11 +267,32 @@ function Dashboard({ user, setPage }) {
     }
   };
 
-  if (isLoading) return <div>Loading tasks...</div>;
+  if (isLoading) {
+    return (
+      <div>
+        <h2>Your Tasks</h2>
+        <div style={{ display: 'grid', gap: '15px' }}>
+          {[1, 2, 3].map(i => (
+            <div key={i} style={{ padding: '15px', border: '1px solid #ddd', borderRadius: '8px', backgroundColor: '#f8f9fa', animation: 'pulse 1.5s ease-in-out infinite' }}>
+              <div style={{ height: '20px', backgroundColor: '#e0e0e0', borderRadius: '4px', marginBottom: '10px', width: '60%' }}></div>
+              <div style={{ height: '14px', backgroundColor: '#e0e0e0', borderRadius: '4px', marginBottom: '8px', width: '40%' }}></div>
+              <div style={{ height: '14px', backgroundColor: '#e0e0e0', borderRadius: '4px', width: '30%' }}></div>
+            </div>
+          ))}
+        </div>
+        <style>{`@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }`}</style>
+      </div>
+    );
+  }
 
   return (
     <div>
-      <h2>Your Tasks ({tasks.length})</h2>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+        <h2>Your Tasks ({tasks.length})</h2>
+        <button onClick={() => loadTasks(true)} disabled={isRefreshing} style={{ padding: '8px 16px', backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '4px', cursor: isRefreshing ? 'not-allowed' : 'pointer', opacity: isRefreshing ? 0.6 : 1 }}>
+          {isRefreshing ? '🔄 Refreshing...' : '🔄 Refresh'}
+        </button>
+      </div>
       {tasks.length === 0 ? (
         <p>No tasks yet. Create one to get started!</p>
       ) : (
@@ -280,7 +319,7 @@ function Dashboard({ user, setPage }) {
       )}
 
       {editingTask && (
-        <EditTaskModal task={editingTask} onClose={() => setEditingTask(null)} onSave={async () => { setEditingTask(null); loadTasks(); }} />
+        <EditTaskModal task={editingTask} onClose={() => setEditingTask(null)} onSave={async () => { setEditingTask(null); loadTasks(true); }} />
       )}
 
       {executionResult && (
@@ -314,7 +353,14 @@ function ExecutionResultModal({ result, onClose }) {
 }
 
 function EditTaskModal({ task, onClose, onSave }) {
-  const [formData, setFormData] = useState(task);
+  const [formData, setFormData] = useState({
+    ...task,
+    input_files: task.input_files || '',
+    output_files: task.output_files || '',
+    scheduled_time: task.scheduled_time || '09:00',
+    scheduled_date: task.scheduled_date || new Date().toISOString().split('T')[0],
+    days_of_week: Array.isArray(task.days_of_week) ? task.days_of_week : [1, 2, 3, 4, 5]
+  });
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e) => {
@@ -337,7 +383,7 @@ function EditTaskModal({ task, onClose, onSave }) {
 
   return (
     <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-      <div style={{ backgroundColor: 'white', padding: '30px', borderRadius: '8px', maxWidth: '500px', width: '90%', maxHeight: '90vh', overflowY: 'auto' }}>
+      <div style={{ backgroundColor: 'white', padding: '30px', borderRadius: '8px', maxWidth: '600px', width: '90%', maxHeight: '90vh', overflowY: 'auto' }}>
         <h2>Edit Task</h2>
         <form onSubmit={handleSubmit}>
           <div style={{ marginBottom: '15px' }}>
@@ -356,6 +402,16 @@ function EditTaskModal({ task, onClose, onSave }) {
           </div>
 
           <div style={{ marginBottom: '15px' }}>
+            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Input Files/Paths</label>
+            <input type="text" value={formData.input_files || ''} onChange={(e) => setFormData({...formData, input_files: e.target.value})} placeholder="/path/to/input" style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd', boxSizing: 'border-box' }} />
+          </div>
+
+          <div style={{ marginBottom: '15px' }}>
+            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Output Files/Paths</label>
+            <input type="text" value={formData.output_files || ''} onChange={(e) => setFormData({...formData, output_files: e.target.value})} placeholder="/path/to/output" style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd', boxSizing: 'border-box' }} />
+          </div>
+
+          <div style={{ marginBottom: '15px' }}>
             <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Success Criteria</label>
             <textarea value={formData.success_criteria || ''} onChange={(e) => setFormData({...formData, success_criteria: e.target.value})} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd', boxSizing: 'border-box', minHeight: '80px' }} />
           </div>
@@ -363,11 +419,50 @@ function EditTaskModal({ task, onClose, onSave }) {
           <div style={{ marginBottom: '15px' }}>
             <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Frequency</label>
             <select value={formData.frequency} onChange={(e) => setFormData({...formData, frequency: e.target.value})} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd', boxSizing: 'border-box' }}>
+              <option value="once">Run Once</option>
               <option value="daily">Daily</option>
               <option value="weekly">Weekly</option>
               <option value="monthly">Monthly</option>
             </select>
           </div>
+
+          <div style={{ marginBottom: '15px' }}>
+            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Time (24-hour format)</label>
+            <input type="time" value={formData.scheduled_time} onChange={(e) => setFormData({...formData, scheduled_time: e.target.value})} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd', boxSizing: 'border-box' }} />
+          </div>
+
+          {formData.frequency === 'once' && (
+            <div style={{ marginBottom: '15px' }}>
+              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Date</label>
+              <input type="date" value={formData.scheduled_date} onChange={(e) => setFormData({...formData, scheduled_date: e.target.value})} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd', boxSizing: 'border-box' }} />
+            </div>
+          )}
+
+          {formData.frequency === 'weekly' && (
+            <div style={{ marginBottom: '15px' }}>
+              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Days of Week</label>
+              <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => {
+                      const days = [...formData.days_of_week];
+                      if (days.includes(idx)) {
+                        days.splice(days.indexOf(idx), 1);
+                      } else {
+                        days.push(idx);
+                      }
+                      setFormData({...formData, days_of_week: days.sort()});
+                    }}
+                    style={{ padding: '8px 12px', backgroundColor: formData.days_of_week.includes(idx) ? '#007bff' : '#ddd', color: formData.days_of_week.includes(idx) ? 'white' : 'black', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+                  >
+                    {day}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
             <button type="button" onClick={onClose} style={{ padding: '10px 20px', backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Cancel</button>

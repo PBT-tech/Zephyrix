@@ -2,17 +2,18 @@
 
 
 #Issues, errors and items to be addressed (in priority order) - 07 October 2026
-1. priority = MEDIUM. Takes a little while to load tasks (performance optimization).
-2. priority = MEDIUM. Calendar view is not working.
-3. priority = MEDIUM. Mobile-responsive design.
-4. priority = HIGH. Task execution results need approval workflow refinement.
+1. priority = HIGH. Task execution results need approval workflow refinement, where approval is required.
+2. priority = MEDIUM. Takes a little while to load tasks (performance optimization).
+3. priority = MEDIUM. Calendar view is not working.
+4. priority = MEDIUM. Mobile-responsive design.
 5. priority = MEDIUM. Execution history/logs not displayed to user.
-
+6. priority = MEDIUM. Modal need x to close the modal in the top right corner.
 
 
 
 #Functionality to add at a later date (in priority order)- 06 October 2026
 **MVP**
+0. Complete AES-256 encryption integration for prompts & sensitive data (infrastructure exists, needs full rollout)
 1. Works with Claude
 2. frequency on task creation screen should include time and options to select multiple days a week and make one off (from calendar), or recurring.  Which auto-generates, deploys Claude Code scripts and auto-updates of all the linked references/indexes, Status tracking and Calendar entries.  Updates master-state.md after each run.  Understands success criteria.
 3. Task queue persistence so users don't lose tasks if they refresh.

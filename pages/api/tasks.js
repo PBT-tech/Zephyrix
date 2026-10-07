@@ -39,11 +39,13 @@ export default async function handler(req, res) {
     if (req.method === 'GET') {
       console.log('GET tasks for user:', user.id);
       try {
+        // Optimize: select only necessary columns
         const { data, error } = await supabase
           .from('tasks')
-          .select('*')
+          .select('id,name,description,frequency,created_at,status,scheduled_time,scheduled_date,days_of_week')
           .eq('user_id', user.id)
-          .order('created_at', { ascending: false });
+          .order('created_at', { ascending: false })
+          .limit(50); // Paginate: max 50 tasks per request
 
         if (error) {
           console.error('Query error:', error);
@@ -51,6 +53,9 @@ export default async function handler(req, res) {
         }
 
         console.log('Tasks fetched:', data?.length || 0);
+
+        // Add caching headers for 5 minutes
+        res.setHeader('Cache-Control', 'private, max-age=300');
         return res.status(200).json({ tasks: data || [] });
       } catch (error) {
         console.error('GET error:', error.message);
@@ -108,7 +113,7 @@ export default async function handler(req, res) {
     if (req.method === 'PUT') {
       console.log('PUT update task for user:', user.id);
       try {
-        const { id, name, description, prompt, frequency, success_criteria } = req.body;
+        const { id, name, description, prompt, frequency, success_criteria, input_files, output_files, scheduled_time, scheduled_date, days_of_week } = req.body;
 
         if (!id) {
           return res.status(400).json({ error: 'Task ID required' });
@@ -119,7 +124,12 @@ export default async function handler(req, res) {
           description: description ? description.trim() : undefined,
           prompt: prompt ? prompt.trim() : undefined,
           frequency: frequency || undefined,
-          success_criteria: success_criteria ? success_criteria.trim() : undefined
+          success_criteria: success_criteria ? success_criteria.trim() : undefined,
+          input_files: input_files ? input_files.split(',').map(f => f.trim()).filter(f => f) : undefined,
+          output_files: output_files ? output_files.split(',').map(f => f.trim()).filter(f => f) : undefined,
+          scheduled_time: scheduled_time || undefined,
+          scheduled_date: scheduled_date || undefined,
+          days_of_week: days_of_week || undefined
         };
 
         // Remove undefined fields
