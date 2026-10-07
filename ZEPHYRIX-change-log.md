@@ -5,7 +5,31 @@ date: 2026-10-07
 
 # ZEPHYRIX Change Log
 
-## Entry 11 - 2026-10-07 ⭐ LATEST
+## Entry 12 - 2026-10-07 ⭐ LATEST
+
+### Task Card UX Enhancement - Display Run Time
+- ✅ Added scheduled time display to task cards (🕐 HH:MM format)
+- ✅ Added frequency emoji indicator (📅)
+- ✅ Added date display for "Run Once" tasks (📆 YYYY-MM-DD)
+- ✅ Added status indicator (🟢 Active/Paused/Archived)
+- ✅ Task cards now show at-a-glance scheduling info
+
+### Before
+- Task Name
+- Description
+- Frequency only
+
+### After
+- Task Name
+- Description
+- 📅 Daily/Weekly/Monthly/Once
+- 🕐 09:00 (when scheduled)
+- 📆 2026-10-15 (for one-time tasks)
+- 🟢 Status indicator
+
+---
+
+## Entry 11 - 2026-10-07
 
 ### Approval Workflow Integration (HIGH Priority ✅)
 - ✅ Created `/api/approve` endpoint (POST) for saving approval decisions

@@ -53,6 +53,16 @@ Select Days — Click day buttons to toggle them on/off, Set Time — Enter hour
 
 # RESOLVED ITEMS - 07 October 2026
 
+## ✅ Entry 12: Task Card UX Enhancement - Display Run Time
+**Status:** COMPLETED - 2026-10-07
+**What was done:**
+- Added scheduled time display to task cards (🕐 format: HH:MM)
+- Added frequency emoji indicator (📅)
+- Added date display for "Run Once" tasks (📆 format: YYYY-MM-DD)
+- Added status indicator (🟢 Active/Paused/Archived)
+- Task cards now provide at-a-glance scheduling information
+- Cleaner visual hierarchy with emoji indicators
+
 ## ✅ Entry 11: Approval Workflow Integration
 **Status:** COMPLETED - 2026-10-07
 **What was done:**

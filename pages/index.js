@@ -306,7 +306,12 @@ function Dashboard({ user, setPage }) {
                 <div style={{ flex: 1 }}>
                   <h3 style={{ margin: '0 0 5px 0' }}>{task.name}</h3>
                   {task.description && <p style={{ color: '#666', margin: '5px 0', fontSize: '14px' }}>{task.description}</p>}
-                  <p style={{ color: '#666', margin: '5px 0', fontSize: '13px' }}>Frequency: {task.frequency}</p>
+                  <div style={{ display: 'flex', gap: '15px', fontSize: '13px', color: '#666', margin: '5px 0' }}>
+                    <span>📅 {task.frequency.charAt(0).toUpperCase() + task.frequency.slice(1)}</span>
+                    {task.scheduled_time && <span>🕐 {task.scheduled_time}</span>}
+                    {task.frequency === 'once' && task.scheduled_date && <span>📆 {task.scheduled_date}</span>}
+                    {task.status && <span>🟢 {task.status === 'active' ? 'Active' : task.status === 'paused' ? 'Paused' : 'Archived'}</span>}
+                  </div>
                 </div>
                 <div style={{ display: 'flex', gap: '10px' }}>
                   <button onClick={() => setEditingTask(task)} style={{ padding: '8px 12px', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>✏️ Edit</button>
