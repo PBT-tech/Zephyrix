@@ -1,8 +1,15 @@
 # Testing notes - items to be changed / fixed
 
 
-#Issues, errors and items to be addressed (in priority order) - 07 October 2026
+#Issues, errors and items to be addressed (in priority order) - 08 October 2026
 ✅ ALL ISSUES RESOLVED - MVP COMPLETE
+
+**Latest fixes:**
+- Entry 26b: Moved "Analyse Changes" button INTO yellow section (08 Oct) ✅
+  - Button now visible at top of modal - no scroll required
+  - Orange color stands out against yellow background
+  - UX is now clear: describe changes → click button → analyze
+- Entry 26a: Australian English - "Analyse Changes" + "Analysing..." (08 Oct)
 
 
 

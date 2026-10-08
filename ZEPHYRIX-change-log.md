@@ -5,7 +5,86 @@ date: 2026-10-07
 
 # ZEPHYRIX Change Log
 
-## Entry 23 - 2026-10-07 ⭐ LATEST
+## Entry 26 - 2026-10-08 ⭐ LATEST
+
+### Analyse Changes Button - UX Fix + Australian English
+- ✅ MOVED button from form footer into yellow "What changes are you making?" section
+- ✅ Button now visible immediately - no scrolling required
+- ✅ Changed text to "Analyse Changes" (Australian English)
+- ✅ Changed loading state to "Analysing..."
+- ✅ Button styled orange (#ff9800) to stand out in yellow section
+- ✅ Removed old submit button from form footer
+- ✅ Form now has only "Close" button at bottom
+
+### UX Flow (NOW CLEAR)
+1. User opens Edit Task modal
+2. Sees yellow section at TOP with:
+   - "What changes are you making?" textarea
+   - Example placeholder text
+   - **"Analyse Changes" button (orange, impossible to miss)**
+3. User fills description + makes edits
+4. Clicks "Analyse Changes" → Claude analyzes
+5. TaskSyncModal appears with questions
+6. User answers → clicks "Apply to Selected"
+7. All tasks updated + logged
+
+### Code Changes
+- Moved button HTML into yellow div (lines 767-785)
+- Styled with orange background to contrast with yellow
+- Added margin-top for spacing from textarea
+- Removed old submit button from form footer
+
+---
+
+## Entry 25 - 2026-10-08
+
+### Wire Up Analyse Changes Button to Claude Analysis Flow
+- ✅ Wired up "Analyse Changes" button in EditTaskModal
+- ✅ Changed form onSubmit from handleSubmit to handleAnalyzeChanges
+- ✅ Implemented handleAnalyzeChanges function:
+  - Validates updateDescription field is filled
+  - Calculates changed fields between original and edited task
+  - Sends to /api/sync-analysis with changes
+  - Stores analysisData in state
+  - Calls onSave() to propagate analysis modal to Dashboard
+- ✅ Loading state shows "Analysing..." while Claude processes
+- ✅ Error handling for missing changes or API failures
+
+### Flow
+1. User edits task → fills yellow "What changes are you making?" field
+2. Clicks "Analyse Changes" button
+3. System detects what fields changed
+4. Calls /api/sync-analysis to find related tasks
+5. Claude generates intelligent questions
+6. TaskSyncModal appears showing questions + related tasks
+7. User answers questions and selects tasks to sync
+8. Clicks "Apply to Selected" to execute sync
+
+### Deployment
+- Commit: efbd85e pushed to main
+- Live on Vercel
+
+---
+
+## Entry 24 - 2026-10-07
+
+### Apply Changes Endpoint - Sync Approval Handler
+- ✅ Created /api/sync-apply endpoint (POST)
+- ✅ Receives user-approved changes and answers
+- ✅ Applies changes to selected related tasks
+- ✅ Handles platform-specific timing adjustments
+- ✅ Logs sync operation to execution_logs as audit trail
+- ✅ Returns result summary (successful/failed task counts)
+
+### Features
+- **Bulk Updates** - Updates multiple tasks in parallel
+- **User Control** - Only updates tasks user explicitly selected
+- **Platform Awareness** - Adjusts time based on platform peak hours
+- **Audit Trail** - Each sync logged with description and affected tasks
+
+---
+
+## Entry 23 - 2026-10-07
 
 ### Task Sync Update Description Field + Execution Logging
 - ✅ Added update description textarea to TaskSyncModal
