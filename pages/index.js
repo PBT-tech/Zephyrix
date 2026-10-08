@@ -1413,7 +1413,7 @@ function TaskSyncModal({ syncData, onClose, onApply }) {
           </div>
         ))}
 
-        <h3 style={{ marginTop: '20px', marginBottom: '10px' }}>Select tasks to update:</h3>
+        <h3 style={{ marginTop: '20px', marginBottom: '10px' }}>Select related tasks to sync these changes to:</h3>
         {syncData.relatedTasks?.map(relTask => (
           <div key={relTask.id} style={{ display: 'flex', alignItems: 'center', marginBottom: '10px', padding: '10px', backgroundColor: '#f9f9f9', borderRadius: '4px' }}>
             <input
