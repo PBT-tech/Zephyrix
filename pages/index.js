@@ -884,12 +884,11 @@ function EditTaskModal({ task, onClose, onSave }) {
               {isLoading ? 'Analyzing...' : 'Analyze Changes'}
             </button>
           </div>
-        </form>
       </div>
     </div>
   );
 }
-    /form>
+        </form>
 
 function CreateTaskForm({ user, setPage, isMobile }) {
   const [formData, setFormData] = useState({
