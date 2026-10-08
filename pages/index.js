@@ -781,8 +781,7 @@ function EditTaskModal({ task, onClose, onSave }) {
                 fontFamily: 'Arial, sans-serif'}}/> 
               <p style={{ fontSize: '11px', color: '#666', margin: '6px 0 0 0' }}>Describe your changes - will be logged for audit trail and help sync to related tasks.</p>
            </div>
-      </div>
-
+  
           <div style={{ marginBottom: '15px' }}>
             <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Prompt/Instructions</label>
             <textarea value={formData.prompt || ''} onChange={(e) => setFormData({...formData, prompt: e.target.value})} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd', boxSizing: 'border-box', minHeight: '100px' }} />
@@ -844,8 +843,7 @@ function EditTaskModal({ task, onClose, onSave }) {
                       }
                       setFormData({...formData, days_of_week: days.sort()});
                     }}
-                    style={{ padding: '8px 12px', backgroundColor: formData.days_of_week.includes(idx) ? '#007bff' : '#ddd', color: formData.days_of_week.includes(idx) ? 'white' : 'black', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
-                  >
+                    style={{ padding: '8px 12px', backgroundColor: formData.days_of_week.includes(idx) ? '#007bff' : '#ddd', color: formData.days_of_week.includes(idx) ? 'white' : 'black', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>
                     {day}
                   </button>
                 ))}
