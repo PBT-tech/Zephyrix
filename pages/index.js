@@ -780,10 +780,12 @@ function EditTaskModal({ task, onClose, onSave }) {
                 fontSize: '13px',
                 fontFamily: 'Arial, sans-serif'
               }}
+            /> 
             />
+      /form>
             <p style={{ fontSize: '11px', color: '#666', margin: '6px 0 0 0' }}>Describe your changes - will be logged for audit trail and help sync to related tasks.</p>
-          </div>
-              </div>
+           </div>
+      </div>
 
           <div style={{ marginBottom: '15px' }}>
             <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Prompt/Instructions</label>
