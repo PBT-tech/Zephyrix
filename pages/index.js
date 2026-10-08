@@ -778,12 +778,8 @@ function EditTaskModal({ task, onClose, onSave }) {
                 boxSizing: 'border-box',
                 minHeight: '70px',
                 fontSize: '13px',
-                fontFamily: 'Arial, sans-serif'
-              }}
-            /> 
-            />
-      /form>
-            <p style={{ fontSize: '11px', color: '#666', margin: '6px 0 0 0' }}>Describe your changes - will be logged for audit trail and help sync to related tasks.</p>
+                fontFamily: 'Arial, sans-serif'}}/> 
+              <p style={{ fontSize: '11px', color: '#666', margin: '6px 0 0 0' }}>Describe your changes - will be logged for audit trail and help sync to related tasks.</p>
            </div>
       </div>
 
@@ -893,6 +889,7 @@ function EditTaskModal({ task, onClose, onSave }) {
     </div>
   );
 }
+    /form>
 
 function CreateTaskForm({ user, setPage, isMobile }) {
   const [formData, setFormData] = useState({
