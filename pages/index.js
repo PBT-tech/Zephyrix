@@ -886,7 +886,6 @@ function EditTaskModal({ task, onClose, onSave }) {
     </div>
   );
 }
-        </form>
 
 function CreateTaskForm({ user, setPage, isMobile }) {
   const [formData, setFormData] = useState({
@@ -1424,7 +1423,8 @@ function TaskSyncModal({ syncData, onClose, onApply }) {
           </button>
         </div>
       </div>
-    </div>
+  </form>
+  </div>
   );
 }
 
