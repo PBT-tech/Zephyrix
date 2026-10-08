@@ -673,11 +673,6 @@ function EditTaskModal({ task, onClose, onSave }) {
           changes[key] = { old: task[key], new: formData[key] };
         }
       });
-      if (Object.keys(changes).length === 0) {
-        alert('No changes detected.');
-        setIsLoading(false);
-        return;
-      }
       const syncResponse = await axios.post('/api/sync-analysis', {
         taskId: task.id, taskName: task.name, changes, taskData: formData, updateDescription
       }, { headers: { Authorization: `Bearer ${session.access_token}` } });
